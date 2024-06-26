@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * Represents a single chess piece
@@ -52,7 +53,30 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-//        throw new RuntimeException("Not implemented");
+        ChessPiece currPiece = board.getPiece(myPosition);
+
+        if (currPiece.getPieceType().equals(PieceType.KING)) {
+            System.out.println("This is a King");
+            return new ArrayList<>();
+
+        } else if (currPiece.getPieceType().equals(PieceType.BISHOP)) {
+            System.out.println("This is a King");
+            return new ArrayList<>();
+        }
+
         return new ArrayList<>();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessPiece that = (ChessPiece) o;
+        return pieceColor == that.pieceColor && type == that.type;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pieceColor, type);
     }
 }
