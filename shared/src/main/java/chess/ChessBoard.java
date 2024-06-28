@@ -41,22 +41,13 @@ public class ChessBoard {
         return squares[position.getRow()-1][position.getColumn()-1];
     }
 
-    /**
-     * Clears the chessboard, removing all pieces.
-     */
-    public void clearBoard() {
-        for (ChessPiece[] row : squares) {
-            Arrays.fill(row, null);
-        }
-    }
 
     /**
      * Sets the board to the default starting board
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        clearBoard();
-
+        squares = new ChessPiece[8][8];
         // add rooks
         addPiece(new ChessPosition(1,1),new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
         addPiece(new ChessPosition(1,8),new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK));
@@ -89,31 +80,6 @@ public class ChessBoard {
             addPiece(new ChessPosition(7,i),new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.PAWN));
         }
 
-
-
-
-//        int row = 8;
-//        int column = 1;
-//        for (var c : startingBoard.toCharArray()) {
-//            switch (c) {
-//                case '\n' -> {
-//                    column = 1;
-//                    row--;
-//                }
-//                case ' ' -> column++;
-//                case '|' -> {
-//                }
-//                default -> {
-//                    ChessGame.TeamColor color = Character.isLowerCase(c) ? ChessGame.TeamColor.BLACK
-//                            : ChessGame.TeamColor.WHITE;
-//                    var type = CHAR_TO_TYPE_MAP.get(Character.toLowerCase(c));
-//                    var position = new ChessPosition(row, column);
-//                    var piece = new ChessPiece(color, type);
-//                    addPiece(position,piece);
-//                    column++;
-//                }
-//            }
-//        }
     }
 
     @Override

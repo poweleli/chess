@@ -2,6 +2,7 @@ package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -55,17 +56,159 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         ChessPiece currPiece = board.getPiece(myPosition);
 
-        if (currPiece.getPieceType().equals(PieceType.KING)) {
-            System.out.println("This is a King");
-            return new ArrayList<>();
-
-        } else if (currPiece.getPieceType().equals(PieceType.BISHOP)) {
-            System.out.println("This is a King");
-            return new ArrayList<>();
-        }
-
-        return new ArrayList<>();
+        return switch (currPiece.getPieceType()) {
+            case KING -> kingMoves(board, myPosition, currPiece);
+            case QUEEN -> queenMoves(board, myPosition, currPiece);
+            case ROOK -> rookMoves(board, myPosition, currPiece);
+            case BISHOP -> bishopMoves(board, myPosition, currPiece);
+            case KNIGHT -> knightMoves(board, myPosition, currPiece);
+            case PAWN -> pawnMoves(board, myPosition, currPiece);
+        };
     }
+
+    public Boolean[] checkValidPos(ChessPosition posPos,  ChessBoard board, ChessPiece currPiece) {
+        // check edge of board
+        if (posPos.getColumn() >= 1 &&
+            posPos.getColumn() <= 8 &&
+            posPos.getRow() >= 1 &&
+            posPos.getRow() <= 8) {
+            // check actual piece
+            ChessPiece posPiece = board.getPiece(posPos);
+
+            if (board.getPiece(posPos) == null) {
+                // ending position is null
+                return new Boolean[]{Boolean.TRUE, Boolean.FALSE};
+            } else if (!currPiece.getTeamColor().equals(posPiece.getTeamColor())) {
+                //ending position takes a piece
+                return new Boolean[]{Boolean.TRUE, Boolean.TRUE};
+            } else {
+                // ending position is a same team piece
+                return new Boolean[]{Boolean.FALSE, Boolean.FALSE};
+            }
+        // off of the board
+        } else {return new Boolean[] {Boolean.FALSE, Boolean.FALSE};}
+    }
+
+    public Collection<ChessMove> straightMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece, int[][] direction) {
+        HashSet<ChessMove> posChessMoves = new HashSet<ChessMove>();
+        for (int[] pair : direction) {
+            // iterate through each direction
+            for (int k = 1; k < 8; k++) {
+                // check if valid
+                ChessPosition posPos = new ChessPosition(myPosition.getRow() + (k * pair[0]), myPosition.getColumn() + (k * pair[1]));
+                Boolean[] validPos = checkValidPos(posPos, board, currPiece);
+                if (validPos[0]) {
+                    posChessMoves.add(new ChessMove(myPosition, posPos, null));
+                    // if taking a piece stop progress
+                    if (validPos[1]) {break;}
+                } else {break;}
+            }
+        }
+        return posChessMoves;
+    }
+
+    public Collection<ChessMove> oneMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece, int[][] moves) {
+        HashSet<ChessMove> posChessMoves = new HashSet<ChessMove>();
+        for (int[] pair : moves) {
+            // check if valid
+            ChessPosition posPos = new ChessPosition(myPosition.getRow() + pair[0], myPosition.getColumn() + pair[1]);
+            Boolean[] validPos = checkValidPos(posPos, board, currPiece);
+            if (validPos[0]) {
+                posChessMoves.add(new ChessMove(myPosition, posPos, null));
+            }
+        }
+        return posChessMoves;
+    }
+
+    public Collection<ChessMove> kingMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece){
+        int[][] moves = new int[][]{{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+                                    {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+        return oneMoves(board, myPosition, currPiece, moves);
+    }
+
+    public Collection<ChessMove> queenMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece){
+        int[][] direction = new int[][]{{-1, -1}, {-1, 0}, {-1, 1}, {0, -1},
+                                        {0, 1}, {1, -1}, {1, 0}, {1, 1}};
+        return straightMoves(board, myPosition, currPiece, direction);
+    }
+
+    public Collection<ChessMove> rookMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece){
+        int[][] direction = new int[][]{{0, 1}, {0, -1}, {1, 0},{-1, 0}};
+        return straightMoves(board, myPosition, currPiece, direction);
+    }
+
+    public Collection<ChessMove> bishopMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece){
+        int[][] direction = new int[][]{{1, 1}, {1, -1}, {-1, 1},{-1, -1}};
+        return straightMoves(board, myPosition, currPiece, direction);
+    }
+
+
+    public Collection<ChessMove> knightMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece){
+        int[][] moves = new int[][]{{1, 2}, {2, 1}, {2, -1}, {1, -2},
+                                        {-2, 1}, {-2, -1}, {-1,2}, {-1,-2}};
+        return oneMoves(board, myPosition, currPiece, moves);
+    }
+
+    public Collection<ChessMove> pawnMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece){
+        HashSet<ChessMove> posChessMoves = new HashSet<ChessMove>();
+        //check the color of the current piece
+        ChessGame.TeamColor currColor = currPiece.getTeamColor();
+        int i = currColor.equals(ChessGame.TeamColor.WHITE) ? 1 : -1;
+        int startRow = currColor.equals(ChessGame.TeamColor.WHITE) ? 2 : 7;
+        int endRow = currColor.equals(ChessGame.TeamColor.WHITE) ? 8 : 1;
+
+        int[][] moves = new int[][]{{i, 0}, {i, 1}, {i, -1}};
+
+        for (int[] pair : moves) {
+            ChessPosition posPos = new ChessPosition(myPosition.getRow() + pair[0], myPosition.getColumn() + pair[1]);
+            if (posPos.getColumn() >= 1 &&
+                    posPos.getColumn() <= 8 &&
+                    posPos.getRow() >= 1 &&
+                    posPos.getRow() <= 8) {
+                // get piece at possible position
+                ChessPiece posPiece = board.getPiece(posPos);
+                // check moving straight
+                if (pair[1] == 0) {
+                    if (board.getPiece(posPos) == null) {
+                        // check if on start row
+                        if (myPosition.getRow() == startRow) {
+                            posChessMoves.add(new ChessMove(myPosition, posPos, null));
+                            posPos = new ChessPosition(myPosition.getRow() + 2 * pair[0], myPosition.getColumn() + pair[1]);
+                            if (board.getPiece(posPos) == null) {
+                                posChessMoves.add(new ChessMove(myPosition, posPos, null));
+                            }
+                        }
+                        // check if moving to the end row
+                        else if (posPos.getRow() == endRow) {
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.QUEEN));
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.ROOK));
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.KNIGHT));
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.BISHOP));
+                        }
+                        // otherwise just add the pawn space
+                        else {
+                            posChessMoves.add(new ChessMove(myPosition, posPos, null));
+                        }
+                    }
+                }
+                // add diagonal if you can take the other team
+                else {
+                    if (board.getPiece(posPos) != null && !board.getPiece(posPos).getTeamColor().equals(currColor)) {
+                        if (posPos.getRow() == endRow) {
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.QUEEN));
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.ROOK));
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.KNIGHT));
+                            posChessMoves.add(new ChessMove(myPosition, posPos, PieceType.BISHOP));
+                        } else {
+                            posChessMoves.add(new ChessMove(myPosition, posPos, null));
+                        }
+                    }
+                }
+            }
+        }
+        return posChessMoves;
+    }
+
 
     @Override
     public boolean equals(Object o) {
