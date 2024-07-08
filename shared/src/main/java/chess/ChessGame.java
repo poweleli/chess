@@ -79,13 +79,8 @@ public class ChessGame {
                     validMoves.add(move);
                 }
             }
-        }
-
-        if (validMoves.isEmpty()) {
-            return null;
-        } else {
-            return validMoves;
-        }
+        } else {return null;}
+        return validMoves;
     }
 
     /**
