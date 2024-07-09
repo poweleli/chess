@@ -72,7 +72,6 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-//        checkBoard();
         HashSet<ChessMove> validMoves = new HashSet<ChessMove>();
         ChessPiece startPiece = gameBoard.getPiece(startPosition);
         if (startPiece != null) {
@@ -106,7 +105,6 @@ public class ChessGame {
 
         if (movingPiece != null && // check if piece is null
             movingPiece.getTeamColor().equals(teamTurnColor) && // check if piece's turn
-//            validMoves(move.getStartPosition()) != null &&
             checkLegalMove(move) && // check if the move is legal
             validMoves(move.getStartPosition()).contains(move) // check if the move is valid
         ) {
@@ -115,7 +113,6 @@ public class ChessGame {
         } else {throw new InvalidMoveException();}
 
         setTeamTurn(teamSwitch());
-        //setTeamTurn opposite color;
     }
 
     public ChessPosition findPiecePos(TeamColor teamColor, ChessPiece.PieceType pieceType) {
@@ -193,7 +190,6 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         return !isInCheck(teamColor) && isInCheckmate(teamColor);
-
     }
 
     /**
