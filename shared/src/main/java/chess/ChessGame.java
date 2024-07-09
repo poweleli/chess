@@ -53,7 +53,7 @@ public class ChessGame {
         gameBoard.addPiece(posMove.getEndPosition(), upgradedPiece);
 
         // check if your king is in danger
-        Boolean isValid = !isInCheck(movingPiece.getTeamColor()) && movingPiece.getTeamColor().equals(teamTurnColor);
+        Boolean isValid = !isInCheck(movingPiece.getTeamColor());
 
         // undo move
         gameBoard.addPiece(posMove.getStartPosition(), movingPiece);
