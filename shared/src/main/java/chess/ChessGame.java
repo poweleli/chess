@@ -15,7 +15,6 @@ public class ChessGame {
     TeamColor teamTurnColor = TeamColor.WHITE;
     ChessBoard gameBoard;
 
-
     public ChessGame() {
     }
 
@@ -44,22 +43,23 @@ public class ChessGame {
     }
 
     public Boolean checkLegalMove(ChessMove posMove) {
-        // initialize board
-//        ChessBoard posBoard = gameBoard;
         // make possible move
         ChessPiece movingPiece = gameBoard.getPiece(posMove.getStartPosition());
+        ChessPiece upgradedPiece = posMove.getPromotionPiece()==null ? movingPiece : new ChessPiece(teamTurnColor, posMove.getPromotionPiece());
         ChessPiece takenPiece = gameBoard.getPiece(posMove.getEndPosition());
+
+        // move piece
         gameBoard.addPiece(posMove.getStartPosition(), null);
-        gameBoard.addPiece(posMove.getEndPosition(), movingPiece);
+        gameBoard.addPiece(posMove.getEndPosition(), upgradedPiece);
 
         // check if your king is in danger
-        Boolean isChecked = !isInCheck(movingPiece.getTeamColor());
+        Boolean isValid = !isInCheck(movingPiece.getTeamColor()) && movingPiece.getTeamColor().equals(teamTurnColor);
 
         // undo move
         gameBoard.addPiece(posMove.getStartPosition(), movingPiece);
         gameBoard.addPiece(posMove.getEndPosition(), takenPiece);
 
-        return isChecked;
+        return isValid;
     }
 
     /**
@@ -70,6 +70,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+//        checkBoard();
         HashSet<ChessMove> validMoves = new HashSet<ChessMove>();
         ChessPiece startPiece = gameBoard.getPiece(startPosition);
         if (startPiece != null) {
@@ -83,6 +84,14 @@ public class ChessGame {
         return validMoves;
     }
 
+    public TeamColor teamSwitch() {
+        if (teamTurnColor.equals(TeamColor.WHITE)) {
+            return TeamColor.BLACK;
+        } else {
+            return TeamColor.WHITE;
+        }
+    }
+
     /**
      * Makes a move in a chess game
      *
@@ -90,7 +99,17 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        ChessPiece movingPiece = move.getPromotionPiece()==null ? gameBoard.getPiece(move.getStartPosition()) : new ChessPiece(teamTurnColor, move.getPromotionPiece());
+        if (movingPiece != null &&
+            checkLegalMove(move) &&
+            validMoves(move.getStartPosition()) != null &&
+            validMoves(move.getStartPosition()).contains(move)) {
+                gameBoard.addPiece(move.getStartPosition(), null);
+                gameBoard.addPiece(move.getEndPosition(), movingPiece);
+        } else {throw new InvalidMoveException();}
+
+        setTeamTurn(teamSwitch());
+        //setTeamTurn opposite color;
     }
 
     public ChessPosition findPiecePos(TeamColor teamColor, ChessPiece.PieceType pieceType) {
@@ -123,17 +142,15 @@ public class ChessGame {
             for (int j=1; j<=8; j++) {
                 ChessPosition posPos = new ChessPosition(i,j);
                 ChessPiece posPiece = gameBoard.getPiece(posPos);
-                if (posPiece != null) {
-                    if (!posPiece.getTeamColor().equals(teamColor)) {
-                        for (ChessMove posMove : posPiece.pieceMoves(gameBoard, posPos)) {
-                            if (posMove.getEndPosition().equals(kingPos)) {
-                                return Boolean.TRUE;
-                            }
+                if (posPiece != null && !posPiece.getTeamColor().equals(teamColor)) {
+                    for (ChessMove posMove : posPiece.pieceMoves(gameBoard, posPos)) {
+                        if (posMove.getEndPosition().equals(kingPos)) {
+                            return Boolean.TRUE;
                         }
                     }
                 }
-
             }
+
         }
         return Boolean.FALSE;
     }
