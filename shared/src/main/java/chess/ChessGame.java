@@ -16,6 +16,7 @@ public class ChessGame {
     ChessBoard gameBoard;
 
     public ChessGame() {
+        this.gameBoard = new ChessBoard();
     }
 
     /**
@@ -99,11 +100,15 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPiece movingPiece = move.getPromotionPiece()==null ? gameBoard.getPiece(move.getStartPosition()) : new ChessPiece(teamTurnColor, move.getPromotionPiece());
-        if (movingPiece != null &&
-            checkLegalMove(move) &&
-            validMoves(move.getStartPosition()) != null &&
-            validMoves(move.getStartPosition()).contains(move)) {
+        ChessPiece movingPiece = move.getPromotionPiece()==null ? gameBoard.getPiece(move.getStartPosition()) :
+                new ChessPiece(gameBoard.getPiece(move.getStartPosition()).getTeamColor(), move.getPromotionPiece());
+
+        if (movingPiece != null && // check if piece is null
+            movingPiece.getTeamColor().equals(teamTurnColor) && // check if piece's turn
+//            validMoves(move.getStartPosition()) != null &&
+            checkLegalMove(move) && // check if the move is legal
+            validMoves(move.getStartPosition()).contains(move) // check if the move is valid
+        ) {
                 gameBoard.addPiece(move.getStartPosition(), null);
                 gameBoard.addPiece(move.getEndPosition(), movingPiece);
         } else {throw new InvalidMoveException();}
