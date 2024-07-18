@@ -4,7 +4,6 @@ import model.AuthData;
 import model.UserData;
 
 public interface UserDAOInterface {
-    public UserData getUser(String username);
-    public Integer createUser(UserData userData);
-    public Integer createAuth(AuthData authData);
+    public UserData getUser(String username) throws DataAccessException;
+    public Integer createUser(UserData userData) throws DataAccessException;
 }

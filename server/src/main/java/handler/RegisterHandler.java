@@ -15,8 +15,9 @@ public class RegisterHandler {
         RegisterRequest registerRequest = gson.fromJson(reqData, RegisterRequest.class);
 
         UserService service = new UserService();
-        RegisterResult result = service.register(registerRequest);
+        ResultInterface result = service.register(registerRequest);
 
+        res.status(result.statusCode());
         return gson.toJson(result);
     }
 

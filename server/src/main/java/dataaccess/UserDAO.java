@@ -6,7 +6,7 @@ import model.UserData;
 public class UserDAO implements UserDAOInterface {
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
         return null;
     }
 
@@ -15,8 +15,4 @@ public class UserDAO implements UserDAOInterface {
         return null;
     }
 
-    @Override
-    public Integer createAuth(AuthData authData) {
-        return null;
-    }
 }
