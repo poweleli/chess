@@ -8,7 +8,6 @@ import java.util.*;
 
 public class UserDAO implements UserDAOInterface {
     private static UserDAO instance;
-
     private final Map<String, UserData> users = new HashMap<>();
 
     private UserDAO() {

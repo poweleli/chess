@@ -5,6 +5,8 @@ import model.*;
 import requests.*;
 import responses.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class UserService {
@@ -12,10 +14,26 @@ public class UserService {
     private final AuthDAOInterface authDao;
 
 
-    public UserService() {
+//    public UserService() {
+//        this.userDao = UserDAO.getInstance();
+//        this.authDao = AuthDAO.getInstance();
+//    }
+
+    private static UserService instance;
+
+    private UserService() {
+        // Private constructor to prevent instantiation
         this.userDao = UserDAO.getInstance();
         this.authDao = AuthDAO.getInstance();
     }
+
+    public static synchronized UserService getInstance() {
+        if (instance == null) {
+            instance = new UserService();
+        }
+        return instance;
+    }
+
 
 
     public ResultInterface register(RegisterRequest req) {
