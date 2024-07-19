@@ -28,7 +28,7 @@ public class AuthDAO implements AuthDAOInterface{
     public String createAuth(String username) {
         String authToken = UUID.randomUUID().toString();
         AuthData authData = new AuthData(username, authToken);
-        auths.put(username, authData);
+        auths.put(authToken, authData);
         return authToken;
 
     }
@@ -39,7 +39,13 @@ public class AuthDAO implements AuthDAOInterface{
     }
 
     @Override
-    public void deleteAuth(AuthData authData) {
+    public void deleteAuth(String authToken) throws DataAccessException{
+        AuthData authData = auths.get(authToken);
+        if (authData != null) {
+            auths.remove(authToken);
+        } else {
+            throw new DataAccessException("Error: unauthorized");
+        }
 
     }
 

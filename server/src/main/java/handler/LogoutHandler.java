@@ -1,8 +1,7 @@
 package handler;
 
 import com.google.gson.Gson;
-import requests.LoginRequest;
-import requests.RegisterRequest;
+import requests.*;
 import responses.ErrorResult;
 import responses.ResultInterface;
 import service.UserService;
@@ -11,7 +10,7 @@ import spark.Response;
 
 import java.util.HashMap;
 
-public class LoginHandler {
+public class LogoutHandler {
     private final Gson gson = new Gson();
     private final UserService service;
 
@@ -19,15 +18,15 @@ public class LoginHandler {
         put("Error: unauthorized", 401);
     }};
 
-    public LoginHandler() {
+    public LogoutHandler() {
         this.service = UserService.getInstance();
     }
 
     public Object handleRequest(Request req, Response res) {
-        String reqData = req.body();
-        LoginRequest loginRequest = gson.fromJson(reqData, LoginRequest.class);
+        String authToken = req.headers("Authorization");
+        LogoutRequest logoutRequest = new LogoutRequest(authToken);
 
-        ResultInterface result = service.login(loginRequest);
+        ResultInterface result = service.logout(logoutRequest);
         res.status(getStatusCode(result));
         return gson.toJson(result);
     }
@@ -42,5 +41,4 @@ public class LoginHandler {
         }
         return 200;
     }
-
 }

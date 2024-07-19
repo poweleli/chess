@@ -52,7 +52,14 @@ public class UserService {
         }
     }
 
-    public void logout(UserData user) {}
+    public ResultInterface logout(LogoutRequest req) {
+        try {
+            authDao.deleteAuth(req.authToken());
+            return new LogoutResult();
+        } catch (DataAccessException e) {
+            return new ErrorResult(e.getMessage());
+        }
+    }
 
     public ResultInterface clear() {
         try {
