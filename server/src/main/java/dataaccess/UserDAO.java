@@ -41,6 +41,14 @@ public class UserDAO implements UserDAOInterface {
     }
 
     @Override
+    public void checkUserCreds(String username, String password) throws DataAccessException {
+        if (users.get(username) == null ||
+            !users.get(username).password().equals(password)) {
+            throw new DataAccessException("Error: unauthorized");
+        }
+    }
+
+    @Override
     public void clear() throws DataAccessException {
         users = new HashMap<>();
     }

@@ -5,11 +5,12 @@ import model.UserData;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class AuthDAO implements AuthDAOInterface{
     private static AuthDAO instance;
 
-    private Map<String, UserData> auths;
+    private Map<String, AuthData> auths;
 
     private AuthDAO() {
         // Private constructor to prevent instantiation
@@ -24,7 +25,11 @@ public class AuthDAO implements AuthDAOInterface{
     }
 
     @Override
-    public void createAuth(AuthData authData) {
+    public String createAuth(String username) {
+        String authToken = UUID.randomUUID().toString();
+        AuthData authData = new AuthData(username, authToken);
+        auths.put(username, authData);
+        return authToken;
 
     }
 
