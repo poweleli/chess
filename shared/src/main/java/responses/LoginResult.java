@@ -1,4 +1,4 @@
 package responses;
 
-public record LoginResult(String username, String authToken, int statusCode) implements ResultInterface{
+public record LoginResult(String username, String authToken) implements ResultInterface{
 }
