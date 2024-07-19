@@ -8,10 +8,11 @@ import java.util.*;
 
 public class UserDAO implements UserDAOInterface {
     private static UserDAO instance;
-    private final Map<String, UserData> users = new HashMap<>();
+    private Map<String, UserData> users;
 
     private UserDAO() {
         // Private constructor to prevent instantiation
+        this.users = new HashMap<>();
     }
 
     public static synchronized UserDAO getInstance() {
@@ -37,6 +38,11 @@ public class UserDAO implements UserDAOInterface {
             users.put(userData.username(), userData);
         } else {
             throw new DataAccessException("Error: already taken");}
+    }
+
+    @Override
+    public void clear() throws DataAccessException {
+        users = new HashMap<>();
     }
 
     private void checkValidRequest(UserData userData) throws DataAccessException {

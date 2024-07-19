@@ -12,13 +12,6 @@ import java.util.UUID;
 public class UserService {
     private final UserDAOInterface userDao;
     private final AuthDAOInterface authDao;
-
-
-//    public UserService() {
-//        this.userDao = UserDAO.getInstance();
-//        this.authDao = AuthDAO.getInstance();
-//    }
-
     private static UserService instance;
 
     private UserService() {
@@ -33,7 +26,6 @@ public class UserService {
         }
         return instance;
     }
-
 
 
     public ResultInterface register(RegisterRequest req) {
@@ -54,5 +46,15 @@ public class UserService {
 
     public LoginResult login(RegisterRequest req) {return null;}
     public void logout(UserData user) {}
+
+    public ResultInterface clear() {
+        try {
+            userDao.clear();
+            authDao.clear();
+            return new ClearResult();
+        } catch (DataAccessException e) {
+            return new ErrorResult(e.getMessage());
+        }
+    }
 
 }

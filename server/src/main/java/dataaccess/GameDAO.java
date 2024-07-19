@@ -10,10 +10,11 @@ import java.util.Map;
 public class GameDAO implements GameDAOInterface {
     private static GameDAO instance;
 
-    private final Map<String, UserData> users = new HashMap<>();
+    private Map<String, UserData> games;
 
     private GameDAO() {
         // Private constructor to prevent instantiation
+        this.games = new HashMap<>();
     }
 
     public static synchronized GameDAO getInstance() {
@@ -36,5 +37,10 @@ public class GameDAO implements GameDAOInterface {
     @Override
     public GameData getGame(String gameId) {
         return null;
+    }
+
+    @Override
+    public void clear() throws DataAccessException {
+        games = new HashMap<>();
     }
 }

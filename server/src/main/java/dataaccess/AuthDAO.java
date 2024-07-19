@@ -9,10 +9,11 @@ import java.util.Map;
 public class AuthDAO implements AuthDAOInterface{
     private static AuthDAO instance;
 
-    private final Map<String, UserData> users = new HashMap<>();
+    private Map<String, UserData> auths;
 
     private AuthDAO() {
         // Private constructor to prevent instantiation
+        this.auths = new HashMap<>();
     }
 
     public static synchronized AuthDAO getInstance() {
@@ -35,5 +36,10 @@ public class AuthDAO implements AuthDAOInterface{
     @Override
     public void deleteAuth(AuthData authData) {
 
+    }
+
+    @Override
+    public void clear() throws DataAccessException {
+        auths = new HashMap<>();
     }
 }
