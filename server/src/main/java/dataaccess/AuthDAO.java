@@ -34,8 +34,13 @@ public class AuthDAO implements AuthDAOInterface{
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
-        return null;
+    public AuthData getAuth(String authToken) throws DataAccessException {
+        AuthData authData = auths.get(authToken);
+        if (authData != null) {
+            return authData;
+        } else {
+            throw new DataAccessException("Error: unauthorized" );
+        }
     }
 
     @Override

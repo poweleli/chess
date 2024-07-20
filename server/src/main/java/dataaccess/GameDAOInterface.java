@@ -2,9 +2,12 @@ package dataaccess;
 
 import model.*;
 
+import java.util.Collection;
+
 public interface GameDAOInterface {
-    public GameData[] listGames();
-    public void createGame(String gameName);
-    public GameData getGame(String gameId);
+    public Collection<GameData> listGames();
+    public int createGame(String gameName) throws DataAccessException;
+    public GameData getGame(int gameId) throws DataAccessException;
+    public void addPlayer(int gameID, String playerColor, String username) throws DataAccessException;
     public void clear() throws DataAccessException;
 }
