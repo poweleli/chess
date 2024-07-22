@@ -1,5 +1,6 @@
 package handler;
 
+import ReturnCode.ReturnCases;
 import com.google.gson.Gson;
 import requests.*;
 import responses.*;
@@ -13,10 +14,6 @@ public class ListGamesHandler {
     private final Gson gson = new Gson();
     private final GameService service;
 
-    private final HashMap<String, Integer> statusCodeMap = new HashMap<String, Integer>() {{
-        put("Error: unauthorized", 401);
-    }};
-
     public ListGamesHandler() {
         this.service = GameService.getInstance();
     }
@@ -26,18 +23,8 @@ public class ListGamesHandler {
         ListGamesRequest listGamesRequest = new ListGamesRequest(authToken);
 
         ResultInterface result = service.listGame(listGamesRequest);
-        res.status(getStatusCode(result));
+        res.status(ReturnCases.getReturnCode(result));
         return gson.toJson(result);
     }
 
-    public int getStatusCode(ResultInterface result) {
-        if (result instanceof ErrorResult) {
-            if (statusCodeMap.get(((ErrorResult) result).message()) == null) {
-                return 500;
-            } else {
-                return statusCodeMap.get(((ErrorResult) result).message());
-            }
-        }
-        return 200;
-    }
 }

@@ -10,18 +10,16 @@ import responses.*;
 import java.util.Collection;
 
 public class GameServiceTests {
-    private static final GameService gameService = GameService.getInstance();
-    private static final UserService userService = UserService.getInstance();
-    private UserData userData;
+    private static final GameService GAME_SERVICE = GameService.getInstance();
+    private static final UserService USER_SERVICE = UserService.getInstance();
     private AuthData authData;
 
     @BeforeEach
     public void setup() {
-        gameService.clear();
-        userService.clear();
+        GAME_SERVICE.clear();
+        USER_SERVICE.clear();
         RegisterRequest regReq = new RegisterRequest("username", "password", "email");
-        ResultInterface regRes = userService.register(regReq);
-        this.userData = new UserData("username", "password", "email");
+        ResultInterface regRes = USER_SERVICE.register(regReq);
         this.authData = new AuthData("username", ((RegisterResult) regRes).authToken());
     }
 
@@ -30,10 +28,10 @@ public class GameServiceTests {
     @DisplayName("List Games")
     public void listGameSuccess() throws Exception {
         CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
-        ResultInterface res = gameService.createGame(req);
+        ResultInterface res = GAME_SERVICE.createGame(req);
 
         ListGamesRequest req1 = new ListGamesRequest(authData.authToken());
-        ResultInterface res1 = gameService.listGame(req1);
+        ResultInterface res1 = GAME_SERVICE.listGame(req1);
 
         Assertions.assertTrue(res1 instanceof ListGamesResult, "Result wrong type");
     }
@@ -42,10 +40,10 @@ public class GameServiceTests {
     @DisplayName("List Games Bad Auth")
     public void listGameFailure() throws Exception {
         CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
-        ResultInterface res = gameService.createGame(req);
+        ResultInterface res = GAME_SERVICE.createGame(req);
 
         ListGamesRequest req1 = new ListGamesRequest("1234");
-        ResultInterface res1 = gameService.listGame(req1);
+        ResultInterface res1 = GAME_SERVICE.listGame(req1);
 
         Assertions.assertTrue(res1 instanceof ErrorResult, "Result wrong type");
         Assertions.assertEquals(((ErrorResult) res1).message(), "Error: unauthorized", "Wrong error message");
@@ -56,7 +54,7 @@ public class GameServiceTests {
     @DisplayName("Create Game")
     public void createGameSuccess() throws Exception {
         CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
-        ResultInterface res = gameService.createGame(req);
+        ResultInterface res = GAME_SERVICE.createGame(req);
 
         Assertions.assertTrue(res instanceof CreateGameResult, "Result wrong type");
     }
@@ -65,7 +63,7 @@ public class GameServiceTests {
     @DisplayName("Create Game No Game Name")
     public void createGameFailure() throws Exception {
         CreateGameRequest req = new CreateGameRequest(authData.authToken(), "");
-        ResultInterface res = gameService.createGame(req);
+        ResultInterface res = GAME_SERVICE.createGame(req);
 
         Assertions.assertTrue(res instanceof ErrorResult, "Result wrong type");
         Assertions.assertEquals(((ErrorResult) res).message(), "Error: bad request", "Wrong error message");
@@ -77,12 +75,12 @@ public class GameServiceTests {
     @DisplayName("Join Game")
     public void joinGameSuccess() throws Exception {
         CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
-        ResultInterface res = gameService.createGame(req);
+        ResultInterface res = GAME_SERVICE.createGame(req);
 
         int gameID = ((CreateGameResult) res).gameID();
 
         JoinGameRequest req1 = new JoinGameRequest(authData.authToken(), "WHITE", gameID);
-        ResultInterface res1 = gameService.joinGame(req1);
+        ResultInterface res1 = GAME_SERVICE.joinGame(req1);
 
         Assertions.assertTrue(res1 instanceof JoinGameResult, "Result wrong type");
     }
@@ -91,11 +89,11 @@ public class GameServiceTests {
     @DisplayName("Join Game Invalid Color")
     public void joinGameFailure() throws Exception {
         CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
-        ResultInterface res = gameService.createGame(req);
+        ResultInterface res = GAME_SERVICE.createGame(req);
         int gameID = ((CreateGameResult) res).gameID();
 
         JoinGameRequest req1 = new JoinGameRequest(authData.authToken(), "BLUE", gameID);
-        ResultInterface res1 = gameService.joinGame(req1);
+        ResultInterface res1 = GAME_SERVICE.joinGame(req1);
 
         Assertions.assertTrue(res1 instanceof ErrorResult, "Result wrong type");
         Assertions.assertEquals(((ErrorResult) res1).message(), "Error: bad request","Result wrong type");
@@ -106,12 +104,12 @@ public class GameServiceTests {
     @DisplayName("Clear Game")
     public void clearGame() throws Exception {
         CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
-        ResultInterface res = gameService.createGame(req);
+        ResultInterface res = GAME_SERVICE.createGame(req);
 
-        ResultInterface res1 = gameService.clear();
+        ResultInterface res1 = GAME_SERVICE.clear();
 
         JoinGameRequest req2 = new JoinGameRequest(authData.authToken(), "BLUE", '1');
-        ResultInterface res2 = gameService.joinGame(req2);
+        ResultInterface res2 = GAME_SERVICE.joinGame(req2);
 
         Assertions.assertTrue(res2 instanceof ErrorResult, "Result wrong type");
         Assertions.assertEquals(((ErrorResult) res2).message(), "Error: bad request","Result wrong type");

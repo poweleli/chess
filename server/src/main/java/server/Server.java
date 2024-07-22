@@ -30,9 +30,4 @@ public class Server {
         Spark.stop();
         Spark.awaitStop();
     }
-
-    private Object registerUser(Request request, Response response) {
-        System.out.println("Testing register user");
-        return null;
-    }
 }

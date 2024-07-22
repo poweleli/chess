@@ -1,5 +1,6 @@
 package handler;
 
+import ReturnCode.ReturnCases;
 import requests.*;
 import responses.*;
 import service.*;
@@ -26,19 +27,8 @@ public class RegisterHandler {
         RegisterRequest registerRequest = gson.fromJson(reqData, RegisterRequest.class);
 
         ResultInterface result = service.register(registerRequest);
-        res.status(getStatusCode(result));
+        res.status(ReturnCases.getReturnCode(result));
         return gson.toJson(result);
-    }
-
-    public int getStatusCode(ResultInterface result) {
-        if (result instanceof ErrorResult) {
-            if (statusCodeMap.get(((ErrorResult) result).message()) == null) {
-                return 500;
-            } else {
-                return statusCodeMap.get(((ErrorResult) result).message());
-            }
-        }
-        return 200;
     }
 
 }

@@ -1,5 +1,6 @@
 package handler;
 
+import ReturnCode.ReturnCases;
 import com.google.gson.Gson;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
@@ -16,12 +17,6 @@ public class JoinGameHandler {
     private final Gson gson = new Gson();
     private final GameService service;
 
-    private final HashMap<String, Integer> statusCodeMap = new HashMap<String, Integer>() {{
-        put("Error: bad request", 400);
-        put("Error: unauthorized", 401);
-        put("Error: already taken", 403);
-    }};
-
     public JoinGameHandler() {
         this.service = GameService.getInstance();
     }
@@ -34,18 +29,7 @@ public class JoinGameHandler {
         joinGameRequest = new JoinGameRequest(authToken, joinGameRequest.playerColor(), joinGameRequest.gameID());
 
         ResultInterface result = service.joinGame(joinGameRequest);
-        res.status(getStatusCode(result));
+        res.status(ReturnCases.getReturnCode(result));
         return gson.toJson(result);
-    }
-
-    public int getStatusCode(ResultInterface result) {
-        if (result instanceof ErrorResult) {
-            if (statusCodeMap.get(((ErrorResult) result).message()) == null) {
-                return 500;
-            } else {
-                return statusCodeMap.get(((ErrorResult) result).message());
-            }
-        }
-        return 200;
     }
 }

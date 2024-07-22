@@ -1,5 +1,6 @@
 package handler;
 
+import ReturnCode.ReturnCases;
 import com.google.gson.Gson;
 import requests.*;
 import responses.ErrorResult;
@@ -27,18 +28,7 @@ public class LogoutHandler {
         LogoutRequest logoutRequest = new LogoutRequest(authToken);
 
         ResultInterface result = service.logout(logoutRequest);
-        res.status(getStatusCode(result));
+        res.status(ReturnCases.getReturnCode(result));
         return gson.toJson(result);
-    }
-
-    public int getStatusCode(ResultInterface result) {
-        if (result instanceof ErrorResult) {
-            if (statusCodeMap.get(((ErrorResult) result).message()) == null) {
-                return 500;
-            } else {
-                return statusCodeMap.get(((ErrorResult) result).message());
-            }
-        }
-        return 200;
     }
 }
