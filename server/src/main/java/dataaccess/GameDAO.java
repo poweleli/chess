@@ -55,6 +55,7 @@ public class GameDAO implements GameDAOInterface {
 
     @Override
     public void addPlayer(int gameID, String playerColor, String username) throws DataAccessException {
+        checkValidColor(playerColor);
         GameData gameData = getGame(gameID);
         if (playerColor.equals("WHITE")) {
             if (gameData.whiteUsername() == null) {
@@ -63,19 +64,22 @@ public class GameDAO implements GameDAOInterface {
             } else {
                 throw new DataAccessException("Error: already taken");
             }
-        } else if (playerColor.equals("BLACK")) {
+        } else {
             if (gameData.blackUsername() == null) {
                 games.put(gameID,
                         new GameData(gameID, gameData.whiteUsername(), username,gameData.gameName(), gameData.game()));
             } else {
                 throw new DataAccessException("Error: already taken");
             }
-        } else {
+        }
+    }
+
+    public void checkValidColor(String playerColor) throws DataAccessException{
+        if (!(playerColor != null &&
+            (playerColor.equals("WHITE") ||
+             playerColor.equals("BLACK")))) {
             throw new DataAccessException("Error: bad request");
         }
-
-
-
     }
 
     @Override
