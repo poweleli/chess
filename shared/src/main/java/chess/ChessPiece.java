@@ -88,10 +88,6 @@ public class ChessPiece {
             }
         }
 
-//        for (ChessMove move : posMoves) {
-//            System.out.println(move.getEndPosition().getRow() + ", " + move.getEndPosition().getColumn());
-//        }
-
         return posMoves;
     }
 
@@ -125,6 +121,13 @@ public class ChessPiece {
         return dynamicMoves(board,myPosition, currPiece, direction);
     }
 
+    public void addPawnMoves(ChessPosition myPosition, ChessPosition posPos, HashSet<ChessMove> posMoves) {
+        posMoves.add(new ChessMove(myPosition, posPos, PieceType.QUEEN));
+        posMoves.add(new ChessMove(myPosition, posPos, PieceType.BISHOP));
+        posMoves.add(new ChessMove(myPosition, posPos, PieceType.KNIGHT));
+        posMoves.add(new ChessMove(myPosition, posPos, PieceType.ROOK));
+    }
+
     public Collection<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition, ChessPiece currPiece) {
         HashSet<ChessMove> posMoves = new HashSet<ChessMove>();
 
@@ -138,10 +141,7 @@ public class ChessPiece {
         if (validPos[0] && !validPos[1]) {
             // check if end piece
             if (posPos.getRow() == endingRow) {
-                posMoves.add(new ChessMove(myPosition, posPos, PieceType.QUEEN));
-                posMoves.add(new ChessMove(myPosition, posPos, PieceType.BISHOP));
-                posMoves.add(new ChessMove(myPosition, posPos, PieceType.KNIGHT));
-                posMoves.add(new ChessMove(myPosition, posPos, PieceType.ROOK));
+                addPawnMoves(myPosition, posPos, posMoves);
             } else {
                 posMoves.add(new ChessMove(myPosition, posPos, null));
                 if (myPosition.getRow() == startingRow) {
@@ -160,10 +160,7 @@ public class ChessPiece {
             validPos = checkValidPos(board, myPosition, currPiece, posPos);
             if (validPos[0] && validPos[1]) {
                 if (posPos.getRow() == endingRow) {
-                    posMoves.add(new ChessMove(myPosition, posPos, PieceType.QUEEN));
-                    posMoves.add(new ChessMove(myPosition, posPos, PieceType.BISHOP));
-                    posMoves.add(new ChessMove(myPosition, posPos, PieceType.KNIGHT));
-                    posMoves.add(new ChessMove(myPosition, posPos, PieceType.ROOK));
+                    addPawnMoves(myPosition, posPos, posMoves);
                 } else {
                     posMoves.add(new ChessMove(myPosition, posPos, null));
                 }
@@ -193,13 +190,12 @@ public class ChessPiece {
             case PAWN -> getPawnMoves(board, myPosition, currPiece);
         };
 
-//        return new HashSet<ChessMove>();
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
         ChessPiece that = (ChessPiece) o;
         return pieceColor == that.pieceColor && type == that.type;
     }
