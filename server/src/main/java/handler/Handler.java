@@ -1,6 +1,6 @@
 package handler;
 
-import ReturnCode.*;
+import status.*;
 import com.google.gson.Gson;
 import responses.ResultInterface;
 import service.*;

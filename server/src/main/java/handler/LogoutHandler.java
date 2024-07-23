@@ -1,9 +1,8 @@
 package handler;
 
-import ReturnCode.ReturnCases;
+import status.ReturnCases;
 import com.google.gson.Gson;
 import requests.*;
-import responses.ErrorResult;
 import responses.ResultInterface;
 import service.UserService;
 import spark.Request;

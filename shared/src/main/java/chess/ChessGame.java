@@ -145,15 +145,21 @@ public class ChessGame {
             for (int j=1; j<=8; j++) {
                 ChessPosition posPos = new ChessPosition(i,j);
                 ChessPiece posPiece = gameBoard.getPiece(posPos);
-                if (posPiece != null && !posPiece.getTeamColor().equals(teamColor)) {
-                    for (ChessMove posMove : posPiece.pieceMoves(gameBoard, posPos)) {
-                        if (posMove.getEndPosition().equals(kingPos)) {
-                            return Boolean.TRUE;
-                        }
-                    }
+                if (checkCheck(teamColor, posPos, posPiece, kingPos)) {
+                    return Boolean.TRUE;
                 }
             }
+        }
+        return Boolean.FALSE;
+    }
 
+    public boolean checkCheck(TeamColor teamColor, ChessPosition posPos, ChessPiece posPiece, ChessPosition kingPos) {
+        if (posPiece != null && !posPiece.getTeamColor().equals(teamColor)) {
+            for (ChessMove posMove : posPiece.pieceMoves(gameBoard, posPos)) {
+                if (posMove.getEndPosition().equals(kingPos)) {
+                    return Boolean.TRUE;
+                }
+            }
         }
         return Boolean.FALSE;
     }

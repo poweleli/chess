@@ -1,6 +1,6 @@
 package handler;
 
-import ReturnCode.ReturnCases;
+import status.ReturnCases;
 import requests.*;
 import responses.*;
 import service.*;

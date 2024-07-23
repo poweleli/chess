@@ -1,17 +1,12 @@
 package handler;
 
-import ReturnCode.ReturnCases;
+import status.ReturnCases;
 import com.google.gson.Gson;
-import requests.CreateGameRequest;
 import requests.JoinGameRequest;
-import responses.ErrorResult;
-import responses.JoinGameResult;
 import responses.ResultInterface;
 import service.GameService;
 import spark.Request;
 import spark.Response;
-
-import java.util.HashMap;
 
 public class JoinGameHandler {
     private final Gson gson = new Gson();

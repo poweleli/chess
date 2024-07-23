@@ -1,4 +1,4 @@
-package ReturnCode;
+package status;
 
 import responses.*;
 

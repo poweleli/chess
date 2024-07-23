@@ -1,14 +1,12 @@
 package handler;
 
-import ReturnCode.ReturnCases;
+import status.ReturnCases;
 import com.google.gson.Gson;
 import requests.*;
 import responses.*;
 import service.*;
 import spark.Request;
 import spark.Response;
-
-import java.util.HashMap;
 
 public class ListGamesHandler {
     private final Gson gson = new Gson();
