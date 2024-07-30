@@ -40,7 +40,7 @@ public class UserDAO implements UserDAOInterface {
             throw new DataAccessException("Error: already taken");}
     }
 
-    @Override
+//    @Override
     public void checkUserCreds(String username, String password) throws DataAccessException {
         if (users.get(username) == null ||
             !users.get(username).password().equals(password)) {
