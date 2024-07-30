@@ -1,5 +1,6 @@
 package server;
 
+import dataaccess.AuthSQL;
 import dataaccess.DataAccessException;
 import dataaccess.UserDAOInterface;
 import dataaccess.UserSQL;
@@ -29,6 +30,23 @@ public class MyDatabaseTests {
         Assertions.assertThrows(DataAccessException.class, () -> {
             user.getUser("username");
         });
+
+    }
+
+    @Test
+    @DisplayName("Testing auth")
+    public void testAuth() throws Exception {
+        AuthSQL auth = new AuthSQL();
+//        user.createUser(new UserData("username", "password", "email@email.com"));
+//        UserData ud = user.getUser("username");
+//        Assertions.assertEquals(ud.username(), "username");
+//        Assertions.assertEquals(ud.password(), "password");
+//        Assertions.assertEquals(ud.email(), "email@email.com");
+//
+//        user.clear();
+//        Assertions.assertThrows(DataAccessException.class, () -> {
+//            user.getUser("username");
+//        });
 
     }
 }
