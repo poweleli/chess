@@ -2,6 +2,7 @@ package dataaccess;
 
 import model.UserData;
 import java.sql.*;
+import java.util.Objects;
 
 public class UserSQL implements UserDAOInterface{
     Connection conn;
@@ -35,10 +36,13 @@ public class UserSQL implements UserDAOInterface{
             preparedStatement.setString(1,username);
 
             try (var rs = preparedStatement.executeQuery()) {
-                rs.next();
-                return new UserData(rs.getString("username"),
-                                    rs.getString("password"),
-                                    rs.getString("email"));
+                if (rs.next()) {
+                    return new UserData(rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("email"));
+                } else {
+                    throw new DataAccessException("Error: bad request");
+                }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
@@ -48,11 +52,37 @@ public class UserSQL implements UserDAOInterface{
 
     @Override
     public void createUser(UserData userData) throws DataAccessException {
-        try (var preparedStatement = conn.prepareStatement("INSERT INTO user (username, password, email) VALUES(?, ?, ?)")) {
-            preparedStatement.setString(1, userData.username());
-            preparedStatement.setString(2, userData.password());
-            preparedStatement.setString(3, userData.email());
+        try {
+            getUser("username");
+            throw new DataAccessException("Error: already taken");
+        } catch(DataAccessException m) {
+            checkValidRequest(userData);
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO user (username, password, email) VALUES(?, ?, ?)")) {
+                preparedStatement.setString(1, userData.username());
+                preparedStatement.setString(2, userData.password());
+                preparedStatement.setString(3, userData.email());
 
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                throw new DataAccessException(e.getMessage());
+            }
+        }
+    }
+
+    private void checkValidRequest(UserData userData) throws DataAccessException {
+        if (!(userData.username().matches("^(?=.*[a-zA-Z0-9])[a-zA-Z0-9_-]+$") &&
+            userData.password().matches("^(?=.*[a-zA-Z0-9])[a-zA-Z0-9_-]+$")
+//                &&
+//            userData.email().matches("^(?=.*[a-zA-Z0-9])[a-zA-Z0-9_-]+$"))
+        )) {
+            throw new DataAccessException("Error: bad request");
+        }
+    }
+
+
+    @Override
+    public void clear() throws DataAccessException {
+        try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE user")) {
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
@@ -61,15 +91,9 @@ public class UserSQL implements UserDAOInterface{
 
     @Override
     public void checkUserCreds(String username, String password) throws DataAccessException {
-
-    }
-
-    @Override
-    public void clear() throws DataAccessException {
-        try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE user")) {
-            preparedStatement.executeUpdate();
-        } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
+        UserData userData = getUser(username);
+        if (!Objects.equals(userData.password(), password)) {
+            throw new DataAccessException("Error: unauthorized");
         }
     }
 }
