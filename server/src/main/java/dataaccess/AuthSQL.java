@@ -61,7 +61,12 @@ public class AuthSQL implements AuthDAOInterface{
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-
+        try (var preparedStatement = conn.prepareStatement("DELETE FROM auth WHERE authtoken=?")) {
+            preparedStatement.setString(1,authToken);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override

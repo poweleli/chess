@@ -39,15 +39,19 @@ public class MyDatabaseTests {
         AuthSQL auth = new AuthSQL();
         auth.clear();
         String authToken = auth.createAuth("username");
+        String authToken2 = auth.createAuth("username2");
         AuthData authData = auth.getAuth(authToken);
         Assertions.assertEquals(authData.username(), "username");
         Assertions.assertEquals(authData.authToken(), authToken);
-//        Assertions.assertEquals(ud.email(), "email@email.com");
-//
-//        user.clear();
-//        Assertions.assertThrows(DataAccessException.class, () -> {
-//            user.getUser("username");
-//        });
+
+        auth.deleteAuth(authToken2);
+        Assertions.assertThrows(DataAccessException.class, () -> {
+            auth.getAuth("username2");
+        });
+        auth.clear();
+        Assertions.assertThrows(DataAccessException.class, () -> {
+            auth.getAuth("username");
+        });
 
     }
 }
