@@ -4,7 +4,7 @@ import dataaccess.AuthSQL;
 import dataaccess.DataAccessException;
 import dataaccess.UserDAOInterface;
 import dataaccess.UserSQL;
-import model.UserData;
+import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,12 +37,11 @@ public class MyDatabaseTests {
     @DisplayName("Testing auth")
     public void testAuth() throws Exception {
         AuthSQL auth = new AuthSQL();
-        String authToken = auth.createAuth("password");
-
-//        user.createUser(new UserData("username", "password", "email@email.com"));
-//        UserData ud = user.getUser("username");
-//        Assertions.assertEquals(ud.username(), "username");
-//        Assertions.assertEquals(ud.password(), "password");
+        auth.clear();
+        String authToken = auth.createAuth("username");
+        AuthData authData = auth.getAuth(authToken);
+        Assertions.assertEquals(authData.username(), "username");
+        Assertions.assertEquals(authData.authToken(), authToken);
 //        Assertions.assertEquals(ud.email(), "email@email.com");
 //
 //        user.clear();

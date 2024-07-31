@@ -1,6 +1,7 @@
 package dataaccess;
 
 import model.AuthData;
+import model.UserData;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -45,7 +46,17 @@ public class AuthSQL implements AuthDAOInterface{
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        return null;
+        try (var preparedStatement = conn.prepareStatement("SELECT * FROM auth WHERE authtoken=?")) {
+            preparedStatement.setString(1,authToken);
+
+            try (var rs = preparedStatement.executeQuery()) {
+                rs.next();
+                return new AuthData(rs.getString("username"),
+                        rs.getString("authtoken"));
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
@@ -55,6 +66,10 @@ public class AuthSQL implements AuthDAOInterface{
 
     @Override
     public void clear() throws DataAccessException {
-
+        try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE auth")) {
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 }
