@@ -56,6 +56,7 @@ public class MyDatabaseTests {
     @DisplayName("Testing game")
     public void testGame() throws Exception {
         GameSQL game = new GameSQL();
+        int gameId = game.createGame("myGame");
 //        auth.clear();
 //        String authToken = auth.createAuth("username");
 //        String authToken2 = auth.createAuth("username2");
