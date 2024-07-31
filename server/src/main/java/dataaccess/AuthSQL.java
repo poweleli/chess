@@ -33,14 +33,31 @@ public class AuthSQL implements AuthDAOInterface{
     @Override
     public String createAuth(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();
-        try (var preparedStatement = conn.prepareStatement("INSERT INTO auth (username, authtoken) VALUES(?, ?)")) {
-            preparedStatement.setString(1, username);
-            preparedStatement.setString(2, authToken);
+        String existingAuthToken = null;
 
-            preparedStatement.executeUpdate();
-            return authToken;
+        try (var selectStatement = conn.prepareStatement("SELECT authtoken FROM auth WHERE username = ?")) {
+            selectStatement.setString(1, username);
+            var resultSet = selectStatement.executeQuery();
+
+            if (resultSet.next()) {
+                existingAuthToken = resultSet.getString("authtoken");
+            }
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
+        }
+
+        if (existingAuthToken != null) {
+            return existingAuthToken;
+        } else {
+            try (var insertStatement = conn.prepareStatement("INSERT INTO auth (username, authtoken) VALUES(?, ?)")) {
+                insertStatement.setString(1, username);
+                insertStatement.setString(2, authToken);
+
+                insertStatement.executeUpdate();
+                return authToken;
+            } catch (SQLException e) {
+                throw new DataAccessException(e.getMessage());
+            }
         }
     }
 
@@ -50,9 +67,12 @@ public class AuthSQL implements AuthDAOInterface{
             preparedStatement.setString(1,authToken);
 
             try (var rs = preparedStatement.executeQuery()) {
-                rs.next();
-                return new AuthData(rs.getString("username"),
-                        rs.getString("authtoken"));
+                if (rs.next()) {
+                    return new AuthData(rs.getString("username"),
+                            rs.getString("authtoken"));
+                } else {
+                    throw new DataAccessException("Error: unauthorized");
+                }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
@@ -61,6 +81,7 @@ public class AuthSQL implements AuthDAOInterface{
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
+        getAuth(authToken);
         try (var preparedStatement = conn.prepareStatement("DELETE FROM auth WHERE authtoken=?")) {
             preparedStatement.setString(1,authToken);
             preparedStatement.executeUpdate();
