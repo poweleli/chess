@@ -1,9 +1,6 @@
 package server;
 
-import dataaccess.AuthSQL;
-import dataaccess.DataAccessException;
-import dataaccess.UserDAOInterface;
-import dataaccess.UserSQL;
+import dataaccess.*;
 import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -17,8 +14,8 @@ public class MyDatabaseTests {
 
     //  Register User Tests
     @Test
-    @DisplayName("Testing conn")
-    public void connSuccess() throws Exception {
+    @DisplayName("Testing user")
+    public void testUser() throws Exception {
         UserSQL user = new UserSQL();
         user.createUser(new UserData("username", "password", "email@email.com"));
         UserData ud = user.getUser("username");
@@ -52,6 +49,28 @@ public class MyDatabaseTests {
         Assertions.assertThrows(DataAccessException.class, () -> {
             auth.getAuth("username");
         });
+
+    }
+
+    @Test
+    @DisplayName("Testing game")
+    public void testGame() throws Exception {
+        GameSQL game = new GameSQL();
+//        auth.clear();
+//        String authToken = auth.createAuth("username");
+//        String authToken2 = auth.createAuth("username2");
+//        AuthData authData = auth.getAuth(authToken);
+//        Assertions.assertEquals(authData.username(), "username");
+//        Assertions.assertEquals(authData.authToken(), authToken);
+//
+//        auth.deleteAuth(authToken2);
+//        Assertions.assertThrows(DataAccessException.class, () -> {
+//            auth.getAuth("username2");
+//        });
+//        auth.clear();
+//        Assertions.assertThrows(DataAccessException.class, () -> {
+//            auth.getAuth("username");
+//        });
 
     }
 }

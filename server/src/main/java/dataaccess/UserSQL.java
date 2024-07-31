@@ -7,7 +7,6 @@ public class UserSQL implements UserDAOInterface{
     Connection conn;
     String createUserTable = """
             CREATE TABLE IF NOT EXISTS user (
-              `id` int NOT NULL AUTO_INCREMENT,
               `username` varchar(256) NOT NULL,
               `password` varchar(256) NOT NULL,
               `email` varchar(256) NOT NULL,

@@ -2,13 +2,34 @@ package dataaccess;
 
 import model.GameData;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Collection;
 
 public class GameSQL implements GameDAOInterface{
+    Connection conn;
+    String createGameTable = """
+            CREATE TABLE IF NOT EXISTS game (
+              `id` int NOT NULL AUTO_INCREMENT,
+              `white_username` varchar(256),
+              `black_username` varchar(256),
+              `game_name` varchar(256) NOT NULL,
+              `chess_game` text NOT NULL,
+              PRIMARY KEY (`id`)
+            )
+            """;
 
 
-    public GameSQL() {
-
+    public GameSQL () throws DataAccessException {
+        try {
+            DatabaseManager.createDatabase();
+            this.conn = DatabaseManager.getConnection();
+            try (var preparedStatement = conn.prepareStatement(createGameTable)) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
