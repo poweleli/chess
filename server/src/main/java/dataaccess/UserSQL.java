@@ -52,10 +52,14 @@ public class UserSQL implements UserDAOInterface{
 
     @Override
     public void createUser(UserData userData) throws DataAccessException {
+        Boolean userExists;
         try {
-            getUser("username");
-            throw new DataAccessException("Error: already taken");
-        } catch(DataAccessException m) {
+            getUser(userData.username());
+            userExists = Boolean.TRUE;
+        } catch (DataAccessException m) {
+            userExists = Boolean.FALSE;
+        }
+        if (!userExists) {
             checkValidRequest(userData);
             try (var preparedStatement = conn.prepareStatement("INSERT INTO user (username, password, email) VALUES(?, ?, ?)")) {
                 preparedStatement.setString(1, userData.username());
@@ -66,6 +70,8 @@ public class UserSQL implements UserDAOInterface{
             } catch (SQLException e) {
                 throw new DataAccessException(e.getMessage());
             }
+        } else {
+            throw new DataAccessException("Error: already taken");
         }
     }
 
