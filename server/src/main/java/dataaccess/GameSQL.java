@@ -39,6 +39,7 @@ public class GameSQL implements GameDAOInterface{
 
     @Override
     public Collection<GameData> listGames() {
+
         return null;
     }
 
@@ -49,18 +50,14 @@ public class GameSQL implements GameDAOInterface{
                                                                 PreparedStatement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, gameName);
             preparedStatement.setString(2, gson.toJson(chessGame));
+            preparedStatement.executeUpdate();
 
-            int affectedRows = preparedStatement.executeUpdate();
-            if (affectedRows > 0) {
-                try (var generatedKeys = preparedStatement.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        return generatedKeys.getInt(1);
-                    } else {
-                        throw new DataAccessException("Failed to retrieve the generated ID.");
-                    }
+            try (var generatedKeys = preparedStatement.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    return generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Creating game failed, no ID obtained.");
                 }
-            } else {
-                throw new DataAccessException("No rows affected, failed to insert the game.");
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
@@ -74,13 +71,16 @@ public class GameSQL implements GameDAOInterface{
             preparedStatement.setString(1,String.valueOf(gameId));
 
             try (var rs = preparedStatement.executeQuery()) {
-                rs.next();
-                ChessGame chessGame = gson.fromJson(rs.getString("chess_game"), ChessGame.class);
-                return new GameData(rs.getInt("id"),
-                        rs.getString("white_username"),
-                        rs.getString("black_username"),
-                        rs.getString("game_name"),
-                        chessGame);
+                if (rs.next()) {
+                    ChessGame chessGame = gson.fromJson(rs.getString("chess_game"), ChessGame.class);
+                    return new GameData(rs.getInt("id"),
+                            rs.getString("white_username"),
+                            rs.getString("black_username"),
+                            rs.getString("game_name"),
+                            chessGame);
+                } else {
+                    throw new DataAccessException("Error: bad request");
+                }
             }
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());
@@ -89,7 +89,37 @@ public class GameSQL implements GameDAOInterface{
 
     @Override
     public void addPlayer(int gameID, String playerColor, String username) throws DataAccessException {
+        checkValidColor(playerColor);
+        GameData chessGame = getGame(gameID);
+        if (playerColor.equals("WHITE") && chessGame.whiteUsername() == null) {
+            try (var preparedStatement = conn.prepareStatement("UPDATE game SET white_username=? WHERE id=?")) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, String.valueOf(gameID));
+                preparedStatement.executeUpdate();
 
+            } catch (SQLException e) {
+                throw new DataAccessException(e.getMessage());
+            }
+        } else if (playerColor.equals("BLACK") && chessGame.blackUsername() == null) {
+            try (var preparedStatement = conn.prepareStatement("UPDATE game SET black_username=? WHERE id=?")) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, String.valueOf(gameID));
+                preparedStatement.executeUpdate();
+
+            } catch (SQLException e) {
+                throw new DataAccessException(e.getMessage());
+            }
+        } else {
+            throw new DataAccessException("Error: already taken");
+        }
+    }
+
+    public void checkValidColor(String playerColor) throws DataAccessException{
+        if (!(playerColor != null &&
+                (playerColor.equals("WHITE") ||
+                        playerColor.equals("BLACK")))) {
+            throw new DataAccessException("Error: bad request");
+        }
     }
 
     @Override

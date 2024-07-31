@@ -65,6 +65,11 @@ public class MyDatabaseTests {
         Assertions.assertNull(gameData.blackUsername());
         Assertions.assertNotNull(gameData.game());
 
+        game.addPlayer(gameId, "WHITE", "username");
+        GameData gameData2 = game.getGame(gameId);
+        Assertions.assertEquals(gameData2.gameName(), "myGame");
+        Assertions.assertEquals(gameData2.whiteUsername(), "username");
+
 
         game.clear();
         Assertions.assertThrows(DataAccessException.class, () -> {
