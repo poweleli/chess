@@ -3,6 +3,7 @@ package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
+import model.UserData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -66,11 +67,24 @@ public class GameSQL implements GameDAOInterface{
         }
     }
 
-//    gson.fromJson(jsonString, ChessGame.class);
 
     @Override
     public GameData getGame(int gameId) throws DataAccessException {
-        return null;
+        try (var preparedStatement = conn.prepareStatement("SELECT * FROM game WHERE id=?")) {
+            preparedStatement.setString(1,String.valueOf(gameId));
+
+            try (var rs = preparedStatement.executeQuery()) {
+                rs.next();
+                ChessGame chessGame = gson.fromJson(rs.getString("chess_game"), ChessGame.class);
+                return new GameData(rs.getInt("id"),
+                        rs.getString("white_username"),
+                        rs.getString("black_username"),
+                        rs.getString("game_name"),
+                        chessGame);
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
@@ -80,6 +94,11 @@ public class GameSQL implements GameDAOInterface{
 
     @Override
     public void clear() throws DataAccessException {
+        try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE game")) {
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
 
     }
 }

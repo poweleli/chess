@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import dataaccess.*;
 import model.*;
 import org.junit.jupiter.api.Assertions;
@@ -57,6 +58,19 @@ public class MyDatabaseTests {
     public void testGame() throws Exception {
         GameSQL game = new GameSQL();
         int gameId = game.createGame("myGame");
+
+        GameData gameData = game.getGame(gameId);
+        Assertions.assertEquals(gameData.gameName(), "myGame");
+        Assertions.assertNull(gameData.whiteUsername());
+        Assertions.assertNull(gameData.blackUsername());
+        Assertions.assertNotNull(gameData.game());
+
+
+        game.clear();
+        Assertions.assertThrows(DataAccessException.class, () -> {
+            game.getGame(gameId);
+        });
+
 //        auth.clear();
 //        String authToken = auth.createAuth("username");
 //        String authToken2 = auth.createAuth("username2");
