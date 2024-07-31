@@ -3,7 +3,6 @@ package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
-import model.UserData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -61,23 +60,26 @@ public class GameSQL implements GameDAOInterface{
 
     @Override
     public int createGame(String gameName) throws DataAccessException {
-        ChessGame chessGame = new ChessGame();
-        try (var preparedStatement = conn.prepareStatement("INSERT INTO game (game_name, chess_game) VALUES(?,?)",
-                                                                PreparedStatement.RETURN_GENERATED_KEYS)) {
-            preparedStatement.setString(1, gameName);
-            preparedStatement.setString(2, gson.toJson(chessGame));
-            preparedStatement.executeUpdate();
+        if (gameName.matches("^(?=.*[a-zA-Z0-9])[a-zA-Z0-9_-]+$")) {
+            ChessGame chessGame = new ChessGame();
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO game (game_name, chess_game) VALUES(?,?)",
+                    PreparedStatement.RETURN_GENERATED_KEYS)) {
+                preparedStatement.setString(1, gameName);
+                preparedStatement.setString(2, gson.toJson(chessGame));
+                preparedStatement.executeUpdate();
 
-            try (var generatedKeys = preparedStatement.getGeneratedKeys()) {
-                if (generatedKeys.next()) {
-                    return generatedKeys.getInt(1);
-                } else {
-                    throw new SQLException("Creating game failed, no ID obtained.");
+                try (var generatedKeys = preparedStatement.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    } else {
+                        throw new SQLException("Creating game failed, no ID obtained.");
+                    }
                 }
+            } catch (SQLException e) {
+                throw new DataAccessException(e.getMessage());
             }
-        } catch (SQLException e) {
-            throw new DataAccessException(e.getMessage());
         }
+        throw new DataAccessException("Error: bad request");
     }
 
 
@@ -130,7 +132,7 @@ public class GameSQL implements GameDAOInterface{
         }
     }
 
-    public void checkValidColor(String playerColor) throws DataAccessException{
+    private void checkValidColor(String playerColor) throws DataAccessException{
         if (!(playerColor != null &&
                 (playerColor.equals("WHITE") ||
                         playerColor.equals("BLACK")))) {

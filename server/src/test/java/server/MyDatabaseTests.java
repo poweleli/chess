@@ -6,10 +6,6 @@ import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import requests.RegisterRequest;
-import responses.ErrorResult;
-import responses.RegisterResult;
-import responses.ResultInterface;
 
 import java.util.Collection;
 
