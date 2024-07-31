@@ -27,7 +27,7 @@ public class GameDAO implements GameDAOInterface {
     }
 
     @Override
-    public Collection<GameData> listGames() {
+    public Collection<GameData> listGames() throws DataAccessException {
         return games.values();
     }
 

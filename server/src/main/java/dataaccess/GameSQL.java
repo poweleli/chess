@@ -8,7 +8,9 @@ import model.UserData;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class GameSQL implements GameDAOInterface{
     private final Gson gson = new Gson();
@@ -38,9 +40,23 @@ public class GameSQL implements GameDAOInterface{
     }
 
     @Override
-    public Collection<GameData> listGames() {
-
-        return null;
+    public Collection<GameData> listGames() throws DataAccessException{
+        List<GameData> gameList = new ArrayList<>();
+        try (var preparedStatement = conn.prepareStatement("SELECT * FROM game")) {
+            try (var rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    ChessGame chessGame = gson.fromJson(rs.getString("chess_game"), ChessGame.class);
+                    gameList.add(new GameData(rs.getInt("id"),
+                            rs.getString("white_username"),
+                            rs.getString("black_username"),
+                            rs.getString("game_name"),
+                            chessGame));
+                }
+                return gameList;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
