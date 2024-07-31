@@ -37,6 +37,8 @@ public class MyDatabaseTests {
     @DisplayName("Testing auth")
     public void testAuth() throws Exception {
         AuthSQL auth = new AuthSQL();
+        String authToken = auth.createAuth("password");
+
 //        user.createUser(new UserData("username", "password", "email@email.com"));
 //        UserData ud = user.getUser("username");
 //        Assertions.assertEquals(ud.username(), "username");

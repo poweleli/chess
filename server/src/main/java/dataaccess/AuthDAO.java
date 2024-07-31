@@ -25,7 +25,7 @@ public class AuthDAO implements AuthDAOInterface{
     }
 
     @Override
-    public String createAuth(String username) {
+    public String createAuth(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();
         AuthData authData = new AuthData(username, authToken);
         auths.put(authToken, authData);

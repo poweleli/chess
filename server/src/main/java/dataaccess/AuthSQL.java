@@ -4,6 +4,7 @@ import model.AuthData;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class AuthSQL implements AuthDAOInterface{
     Connection conn;
@@ -29,8 +30,17 @@ public class AuthSQL implements AuthDAOInterface{
     }
 
     @Override
-    public String createAuth(String username) {
-        return null;
+    public String createAuth(String username) throws DataAccessException {
+        String authToken = UUID.randomUUID().toString();
+        try (var preparedStatement = conn.prepareStatement("INSERT INTO auth (username, authtoken) VALUES(?, ?)")) {
+            preparedStatement.setString(1, username);
+            preparedStatement.setString(2, authToken);
+
+            preparedStatement.executeUpdate();
+            return authToken;
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
     }
 
     @Override
