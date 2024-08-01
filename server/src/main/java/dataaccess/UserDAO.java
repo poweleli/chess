@@ -15,13 +15,6 @@ public class UserDAO implements UserDAOInterface {
         this.users = new HashMap<>();
     }
 
-    public static synchronized UserDAO getInstance() {
-        if (instance == null) {
-            instance = new UserDAO();
-        }
-        return instance;
-    }
-
     @Override
     public UserData getUser(String username) throws DataAccessException {
         if (users.containsKey(username)) {

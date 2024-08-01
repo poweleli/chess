@@ -47,18 +47,8 @@ public class AuthSQL implements AuthDAOInterface{
     }
 
 
-
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-//        try (Connection conn = DatabaseManager.getConnection();
-//             var statement = conn.createStatement()) {
-//            // Drop the table if it exists
-//            statement.executeUpdate("DROP TABLE IF EXISTS auth");
-//        } catch (SQLException e) {
-//            throw new DataAccessException(e.getMessage());
-//        }
-
-
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("SELECT * FROM auth WHERE authtoken=?")) {
                 preparedStatement.setString(1, authToken);

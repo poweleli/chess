@@ -17,13 +17,6 @@ public class AuthDAO implements AuthDAOInterface{
         this.auths = new HashMap<>();
     }
 
-    public static synchronized AuthDAO getInstance() {
-        if (instance == null) {
-            instance = new AuthDAO();
-        }
-        return instance;
-    }
-
     @Override
     public String createAuth(String username) throws DataAccessException {
         String authToken = UUID.randomUUID().toString();

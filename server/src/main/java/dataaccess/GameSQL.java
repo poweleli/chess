@@ -25,7 +25,6 @@ public class GameSQL implements GameDAOInterface{
             )
             """;
 
-
     public GameSQL () throws DataAccessException {
         try {
             DatabaseManager.createDatabase();
@@ -63,7 +62,6 @@ public class GameSQL implements GameDAOInterface{
 
     @Override
     public int createGame(String gameName) throws DataAccessException {
-//        if (gameName.matches("^(?=.*[a-zA-Z0-9])[a-zA-Z0-9 _.,!?\"'-]+$")) {
         if (gameName != null && !gameName.trim().isEmpty()) {
             ChessGame chessGame = new ChessGame();
             try (Connection conn = DatabaseManager.getConnection()) {
@@ -74,11 +72,8 @@ public class GameSQL implements GameDAOInterface{
                     preparedStatement.executeUpdate();
 
                     try (var generatedKeys = preparedStatement.getGeneratedKeys()) {
-                        if (generatedKeys.next()) {
-                            return generatedKeys.getInt(1);
-                        } else {
-                            throw new SQLException("Creating game failed, no ID obtained.");
-                        }
+                        generatedKeys.next();
+                        return generatedKeys.getInt(1);
                     }
                 }
             } catch (SQLException e) {

@@ -19,13 +19,6 @@ public class GameDAO implements GameDAOInterface {
         this.games = new HashMap<>();
     }
 
-    public static synchronized GameDAO getInstance() {
-        if (instance == null) {
-            instance = new GameDAO();
-        }
-        return instance;
-    }
-
     @Override
     public Collection<GameData> listGames() throws DataAccessException {
         return games.values();
