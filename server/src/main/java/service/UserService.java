@@ -5,27 +5,15 @@ import model.*;
 import requests.*;
 import responses.*;
 
-import javax.xml.transform.Result;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 public class UserService {
     private final UserDAOInterface userDao;
     private final AuthDAOInterface authDao;
     private static UserService instance;
 
-    private UserService() {
+    public UserService() throws Exception{
         // Private constructor to prevent instantiation
-        this.userDao = UserDAO.getInstance();
-        this.authDao = AuthDAO.getInstance();
-    }
-
-    public static synchronized UserService getInstance() {
-        if (instance == null) {
-            instance = new UserService();
-        }
-        return instance;
+        this.userDao = new UserSQL();
+        this.authDao = new AuthSQL();
     }
 
     public ResultInterface register(RegisterRequest req) {

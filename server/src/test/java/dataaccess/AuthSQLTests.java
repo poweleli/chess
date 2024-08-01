@@ -1,7 +1,7 @@
 package dataaccess;
 
 import model.AuthData;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Objects;
 
 public class AuthSQLTests {
-    @AfterEach
+    @BeforeEach
     public void cleanup() throws Exception {
         AuthSQL auth = new AuthSQL();
         auth.clear();
@@ -32,7 +32,7 @@ public class AuthSQLTests {
         String authToken = auth.createAuth("username");
         String authToken2 = auth.createAuth("username");
 
-        Assertions.assertEquals(authToken, authToken2);
+        Assertions.assertNotEquals(authToken, authToken2);
     }
 
     @Test

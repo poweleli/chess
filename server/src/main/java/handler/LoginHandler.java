@@ -14,12 +14,8 @@ public class LoginHandler {
     private final Gson gson = new Gson();
     private final UserService service;
 
-    private final HashMap<String, Integer> statusCodeMap = new HashMap<String, Integer>() {{
-        put("Error: unauthorized", 401);
-    }};
-
-    public LoginHandler() {
-        this.service = UserService.getInstance();
+    public LoginHandler() throws Exception {
+        this.service = new UserService();
     }
 
     public Object handleRequest(Request req, Response res) {

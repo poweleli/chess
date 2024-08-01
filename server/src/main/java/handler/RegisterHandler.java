@@ -13,13 +13,9 @@ public class RegisterHandler {
     private final Gson gson = new Gson();
     private final UserService service;
 
-    private final HashMap<String, Integer> statusCodeMap = new HashMap<String, Integer>() {{
-            put("Error: bad request", 400);
-            put("Error: already taken", 403);
-        }};
 
-    public RegisterHandler() {
-        this.service = UserService.getInstance();
+    public RegisterHandler() throws Exception {
+        this.service = new UserService();
     }
 
     public Object handleRequest(Request req, Response res) {

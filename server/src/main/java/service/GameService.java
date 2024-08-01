@@ -14,21 +14,12 @@ import java.util.Collection;
 public class GameService {
     private final GameDAOInterface gameDao;
     private final AuthDAOInterface authDao;
-    private final UserDAOInterface userDao;
     private static GameService instance;
 
-    private GameService() {
+    public GameService() throws DataAccessException{
         // Private constructor to prevent instantiation
-        this.gameDao = GameDAO.getInstance();
-        this.authDao = AuthDAO.getInstance();
-        this.userDao = UserDAO.getInstance();
-    }
-
-    public static synchronized GameService getInstance() {
-        if (instance == null) {
-            instance = new GameService();
-        }
-        return instance;
+        this.gameDao = new GameSQL();
+        this.authDao = new AuthSQL();
     }
 
     public ResultInterface listGame(ListGamesRequest req) {

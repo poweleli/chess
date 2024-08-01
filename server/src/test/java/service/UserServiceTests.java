@@ -7,7 +7,15 @@ import responses.*;
 
 
 public class UserServiceTests {
-    private static final UserService USER_SERVICE = UserService.getInstance();
+    private static final UserService USER_SERVICE;
+
+    static {
+        try {
+            USER_SERVICE = new UserService();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @BeforeEach
     public void setup() {
@@ -48,6 +56,10 @@ public class UserServiceTests {
         LoginRequest req1 = new LoginRequest("username", "password");
         ResultInterface res1 = USER_SERVICE.login(req1);
 
+        if (res1 instanceof ErrorResult) {
+            System.out.println(((ErrorResult) res1).message());
+        }
+
         Assertions.assertTrue(res1 instanceof LoginResult, "Result is not a Login Result object.");
         Assertions.assertEquals(((LoginResult) res1).username(), "username", "Usernames of request and result so not match");
     }
@@ -73,6 +85,9 @@ public class UserServiceTests {
         LoginRequest req1 = new LoginRequest("username", "password");
         ResultInterface res1 = USER_SERVICE.login(req1);
 
+        if (res1 instanceof ErrorResult) {
+            System.out.println(((ErrorResult) res1).message());
+        }
         String authToken = ((LoginResult) res1).authToken();
         LogoutRequest req2 = new LogoutRequest(authToken);
         ResultInterface res2 = USER_SERVICE.logout(req2);

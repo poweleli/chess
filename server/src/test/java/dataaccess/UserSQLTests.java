@@ -1,12 +1,15 @@
 package dataaccess;
 
 import model.UserData;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 public class UserSQLTests {
+    @BeforeAll
+    public static void init() throws Exception {
+        UserSQL user = new UserSQL();
+        user.clear();
+    }
+
     @AfterEach
     public void cleanup() throws Exception {
         UserSQL user = new UserSQL();

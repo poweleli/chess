@@ -10,9 +10,9 @@ public class Handler {
     protected final GameService gameService;
     protected final Gson gson = new Gson();
 
-    public Handler() {
-        this.userService = UserService.getInstance();
-        this.gameService = GameService.getInstance();
+    public Handler() throws Exception {
+        this.userService = new UserService();
+        this.gameService = new GameService();
     }
 
     public int getStatusCode(ResultInterface res) {

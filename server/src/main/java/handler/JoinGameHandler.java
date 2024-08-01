@@ -1,5 +1,6 @@
 package handler;
 
+import dataaccess.DataAccessException;
 import status.ReturnCases;
 import com.google.gson.Gson;
 import requests.JoinGameRequest;
@@ -12,8 +13,8 @@ public class JoinGameHandler {
     private final Gson gson = new Gson();
     private final GameService service;
 
-    public JoinGameHandler() {
-        this.service = GameService.getInstance();
+    public JoinGameHandler() throws DataAccessException {
+        this.service = new GameService();
     }
 
     public Object handleRequest(Request req, Response res) {

@@ -1,6 +1,7 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.DataAccessException;
 import model.*;
 import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.*;
@@ -10,9 +11,18 @@ import responses.*;
 import java.util.Collection;
 
 public class GameServiceTests {
-    private static final GameService GAME_SERVICE = GameService.getInstance();
-    private static final UserService USER_SERVICE = UserService.getInstance();
+    private static final GameService GAME_SERVICE;
+    private static final UserService USER_SERVICE;
     private AuthData authData;
+
+    static {
+        try {
+            GAME_SERVICE = new GameService();
+            USER_SERVICE = new UserService();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @BeforeEach
     public void setup() {
@@ -27,7 +37,7 @@ public class GameServiceTests {
     @Test
     @DisplayName("List Games")
     public void listGameSuccess() throws Exception {
-        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
+        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game_1");
         ResultInterface res = GAME_SERVICE.createGame(req);
 
         ListGamesRequest req1 = new ListGamesRequest(authData.authToken());
@@ -39,7 +49,7 @@ public class GameServiceTests {
     @Test
     @DisplayName("List Games Bad Auth")
     public void listGameFailure() throws Exception {
-        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
+        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game_1");
         ResultInterface res = GAME_SERVICE.createGame(req);
 
         ListGamesRequest req1 = new ListGamesRequest("1234");
@@ -53,9 +63,12 @@ public class GameServiceTests {
     @Test
     @DisplayName("Create Game")
     public void createGameSuccess() throws Exception {
-        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
+        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game_1");
         ResultInterface res = GAME_SERVICE.createGame(req);
 
+        if (res instanceof ErrorResult) {
+            System.out.println(((ErrorResult) res).message());
+        }
         Assertions.assertTrue(res instanceof CreateGameResult, "Result wrong type");
     }
 
@@ -74,7 +87,7 @@ public class GameServiceTests {
     @Test
     @DisplayName("Join Game")
     public void joinGameSuccess() throws Exception {
-        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
+        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game_1");
         ResultInterface res = GAME_SERVICE.createGame(req);
 
         int gameID = ((CreateGameResult) res).gameID();
@@ -88,7 +101,7 @@ public class GameServiceTests {
     @Test
     @DisplayName("Join Game Invalid Color")
     public void joinGameFailure() throws Exception {
-        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
+        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game_1");
         ResultInterface res = GAME_SERVICE.createGame(req);
         int gameID = ((CreateGameResult) res).gameID();
 
@@ -103,7 +116,7 @@ public class GameServiceTests {
     @Test
     @DisplayName("Clear Game")
     public void clearGame() throws Exception {
-        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game 1");
+        CreateGameRequest req = new CreateGameRequest(authData.authToken(), "Game_1");
         ResultInterface res = GAME_SERVICE.createGame(req);
 
         ResultInterface res1 = GAME_SERVICE.clear();

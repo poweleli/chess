@@ -1,22 +1,19 @@
 package handler;
 
 import com.google.gson.Gson;
-import dataaccess.DataAccessException;
 import responses.*;
 import service.*;
 import spark.*;
 
-
-import java.util.HashMap;
 
 public class ClearHandler {
     private final Gson gson = new Gson();
     private final UserService userService;
     private final GameService gameService;
 
-    public ClearHandler() {
-        this.userService = UserService.getInstance();
-        this.gameService = GameService.getInstance();
+    public ClearHandler() throws Exception {
+        this.userService = new UserService();
+        this.gameService = new GameService();
     }
 
     public Object handleRequest(Request req, Response res) {
