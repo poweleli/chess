@@ -1,6 +1,8 @@
 package dataaccess;
 
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
+
 import java.sql.*;
 import java.util.Objects;
 
@@ -63,19 +65,28 @@ public class UserSQL implements UserDAOInterface{
         }
         if (!userExists) {
             checkValidRequest(userData);
-            try (Connection conn = DatabaseManager.getConnection()) {
-                try (var preparedStatement = conn.prepareStatement("INSERT INTO user (username, password, email) VALUES(?, ?, ?)")) {
-                    preparedStatement.setString(1, userData.username());
-                    preparedStatement.setString(2, userData.password());
-                    preparedStatement.setString(3, userData.email());
-
-                    preparedStatement.executeUpdate();
-                }
-            } catch (SQLException e) {
-                throw new DataAccessException(e.getMessage());
-            }
+            storeUserPassword(userData);
         } else {
             throw new DataAccessException("Error: already taken");
+        }
+    }
+
+    private void storeUserPassword(UserData userData) throws DataAccessException {
+        String hashedPassword = BCrypt.hashpw(userData.password(), BCrypt.gensalt());
+        writeHashedPasswordToDatabase(userData, hashedPassword);
+    }
+
+    private void writeHashedPasswordToDatabase(UserData userData, String hashedPassword) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO user (username, password, email) VALUES(?, ?, ?)")) {
+                preparedStatement.setString(1, userData.username());
+                preparedStatement.setString(2, hashedPassword);
+                preparedStatement.setString(3, userData.email());
+
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException | DataAccessException e) {
+            throw new DataAccessException(e.getMessage());
         }
     }
 
@@ -108,7 +119,7 @@ public class UserSQL implements UserDAOInterface{
     public void checkUserCreds(String username, String password) throws DataAccessException {
         try {
             UserData userData = getUser(username);
-            if (!Objects.equals(userData.password(), password)) {
+            if (!BCrypt.checkpw(password, userData.password())) {
                 throw new DataAccessException("Error: unauthorized");
             }
         } catch (DataAccessException e) {

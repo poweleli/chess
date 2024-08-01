@@ -48,7 +48,6 @@ public class UserSQLTests {
 
         UserData userDatares = user.getUser("username");
         Assertions.assertEquals("username", userDatares.username());
-        Assertions.assertEquals("password", userDatares.password());
         Assertions.assertEquals("email@email.com", userDatares.email());
     }
 
