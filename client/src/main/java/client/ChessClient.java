@@ -3,6 +3,7 @@ package client;
 import client.ServerFacade;
 import exception.ResponseException;
 import requests.RegisterRequest;
+import responses.*;
 
 import java.util.Scanner;
 
@@ -21,8 +22,8 @@ public class ChessClient {
 
     public void start() {
         System.out.println("♕ Welcome to 240 chess. Type Help to get started. ♕");
-        try {
-            while (activeApp) {
+        while (activeApp) {
+            try {
                 String userInputMessage = state.equals(State.SIGNEDIN) ? "LOGGED_IN" : "LOGGED_OUT";
                 System.out.printf("[%s] >>> ", userInputMessage);
                 String input = scanner.nextLine();
@@ -34,7 +35,7 @@ public class ChessClient {
                     activeApp = Boolean.FALSE;
                 } else if (state.equals(State.SIGNEDOUT)) {
                     if (inputs[0].equalsIgnoreCase("register")) {
-                        register(inputs);
+                        System.out.println(register(inputs));
                         System.out.println("register");
                     } else if (inputs[0].equalsIgnoreCase("login")) {
                         //                    login(input);
@@ -65,19 +66,17 @@ public class ChessClient {
                         System.out.println("Invalid Request");
                     }
                 }
+            } catch (ResponseException e) {
+                System.out.println(e.getMessage());
             }
-        } catch (ResponseException e) {
-            System.out.println(e.getMessage());
         }
-
-//        var piece = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.PAWN);
-//        System.out.println("♕ 240 Chess Client: " + piece);
     }
 
-    public void register(String[] inputs) throws ResponseException{
+    public String register(String[] inputs) throws ResponseException{
         if (inputs.length >= 4) {
             RegisterRequest req = new RegisterRequest(inputs[1], inputs[2], inputs[3]);
-            server.register(req);
+            RegisterResult res = server.register(req);
+            return String.format("%s has been registered.", res.username());
         }
         throw new ResponseException(500, "Expected <USERNAME> <PASSWORD> <EMAIL>");
     }

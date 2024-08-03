@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import responses.*;
 import requests.*;
 import exception.ResponseException;
-//import exception.ResponseException;
-//import model.Pet;
 
 import java.io.*;
 import java.net.*;
@@ -17,39 +15,39 @@ public class ServerFacade {
         serverUrl = serverUrlString;
     }
 
-    public ResultInterface register(RegisterRequest req) throws ResponseException {
+    public RegisterResult register(RegisterRequest req) throws ResponseException {
         var path = "/user";
-        return this.makeRequest("POST", path, req, ResultInterface.class);
+        return this.makeRequest("POST", path, req, RegisterResult.class);
     }
 
-    public ResultInterface login(LoginRequest req) throws ResponseException {
+    public LoginResult login(LoginRequest req) throws ResponseException {
         var path = "/session";
-        return this.makeRequest("POST", path, req, ResultInterface.class);
+        return this.makeRequest("POST", path, req, LoginResult.class);
     }
 
-    public ResultInterface logout(LogoutRequest req) throws ResponseException {
+    public LogoutResult logout(LogoutRequest req) throws ResponseException {
         var path = "/session";
-        return this.makeRequest("DELETE", path, req, ResultInterface.class);
+        return this.makeRequest("DELETE", path, req, LogoutResult.class);
     }
 
-    public ResultInterface listGames(ListGamesRequest req) throws ResponseException {
+    public ListGamesResult listGames(ListGamesRequest req) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("GET", path, req, ResultInterface.class);
+        return this.makeRequest("GET", path, req, ListGamesResult.class);
     }
 
-    public ResultInterface createGame(CreateGameRequest req) throws ResponseException {
+    public CreateGameResult createGame(CreateGameRequest req) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("POST", path, req, ResultInterface.class);
+        return this.makeRequest("POST", path, req, CreateGameResult.class);
     }
 
-    public ResultInterface joinGame(JoinGameRequest req) throws ResponseException {
+    public JoinGameResult joinGame(JoinGameRequest req) throws ResponseException {
         var path = "/game";
-        return this.makeRequest("PUT", path, req, ResultInterface.class);
+        return this.makeRequest("PUT", path, req, JoinGameResult.class);
     }
 
-    public void deleteDB() throws ResponseException {
+    public ClearResult deleteDB() throws ResponseException {
         var path = "/db";
-        this.makeRequest("DELETE", path, null, null);
+        return this.makeRequest("DELETE", path, null, ClearResult.class);
     }
 
 
@@ -65,10 +63,7 @@ public class ServerFacade {
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
         } catch (Exception e) {
-            System.out.println(method + " didn't work.");
-            System.out.println(e.getMessage());
-            return null;
-//            throw new ResponseException(500, e.getMessage());
+            throw new ResponseException(500, e.getMessage());
         }
     }
 
@@ -86,7 +81,7 @@ public class ServerFacade {
     private void throwIfNotSuccessful(HttpURLConnection http) throws IOException, ResponseException {
         var status = http.getResponseCode();
         if (!isSuccessful(status)) {
-            throw new ResponseException(status, "failure: " + status);
+            throw new ResponseException(status, getErrorMessage(status));
         }
     }
 
@@ -107,4 +102,14 @@ public class ServerFacade {
     private boolean isSuccessful(int status) {
         return status / 100 == 2;
     }
+
+    public static String getErrorMessage(int errorCode) {
+        return switch (errorCode) {
+            case 400 -> "Error: bad request";
+            case 401 -> "Error: unauthorized";
+            case 403 -> "Error: already taken";
+            default -> "Error: unknown"; // Default message for unknown error codes
+        };
+    }
 }
+
