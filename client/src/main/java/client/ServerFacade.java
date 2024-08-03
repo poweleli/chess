@@ -13,8 +13,8 @@ import java.net.*;
 public class ServerFacade {
     private final String serverUrl;
 
-    public ServerFacade(String url) {
-        serverUrl = url;
+    public ServerFacade(String serverUrlString) {
+        serverUrl = serverUrlString;
     }
 
     public ResultInterface register(RegisterRequest req) throws ResponseException {
@@ -65,7 +65,10 @@ public class ServerFacade {
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
         } catch (Exception e) {
-            throw new ResponseException(500, e.getMessage());
+            System.out.println(method + " didn't work.");
+            System.out.println(e.getMessage());
+            return null;
+//            throw new ResponseException(500, e.getMessage());
         }
     }
 

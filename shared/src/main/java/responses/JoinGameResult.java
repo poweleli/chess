@@ -1,4 +1,4 @@
 package responses;
 
-public record JoinGameResult() implements ResultInterface{
+public record JoinGameResult() {
 }

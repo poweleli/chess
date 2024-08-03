@@ -1,4 +1,4 @@
 package responses;
 
-public record CreateGameResult(int gameID) implements ResultInterface{
+public record CreateGameResult(int gameID){
 }

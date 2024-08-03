@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import responses.*;
 import service.*;
 import spark.*;
+import status.ReturnCases;
 
 
 public class ClearHandler {
@@ -17,18 +18,15 @@ public class ClearHandler {
     }
 
     public Object handleRequest(Request req, Response res) {
-        ResultInterface resultUser = userService.clear();
-        ResultInterface resultGame = gameService.clear();
-
-        if (resultUser instanceof ErrorResult) {
-            res.status(500);
-            return gson.toJson(resultUser);
-        } else if (resultGame instanceof ErrorResult) {
-            res.status(500);
-            return gson.toJson(resultGame);
-        } else {
+        try {
+            ClearResult resultUser = userService.clear();
+            ClearResult resultGame = gameService.clear();
             res.status(200);
             return gson.toJson(resultGame);
+        } catch (Exception e) {
+            res.status(ReturnCases.getReturnCode(e.getMessage()));
+            return ReturnCases.generateJsonResponse(e.getMessage());
         }
+
     }
 }

@@ -1,8 +1,12 @@
 package status;
 
+import com.google.gson.JsonObject;
 import responses.*;
+import com.google.gson.Gson;
 
 public class ReturnCases {
+    private static final Gson gson = new Gson();
+
     public static int getErrorCode(String errorMessage) {
         return switch (errorMessage) {
             case "Error: bad request" -> 400;
@@ -12,11 +16,13 @@ public class ReturnCases {
         };
     }
 
-    public static int getReturnCode(ResultInterface res) {
-        if (res instanceof ErrorResult) {
-            return getErrorCode(((ErrorResult) res).message());
-        } else {
-            return 200;
-        }
+    public static int getReturnCode(String error) {
+        return getErrorCode(error);
+    }
+
+    public static JsonObject generateJsonResponse(String errorMessage) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("message", errorMessage);
+        return jsonObject;
     }
 }

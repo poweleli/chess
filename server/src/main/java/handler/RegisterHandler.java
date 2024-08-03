@@ -19,12 +19,18 @@ public class RegisterHandler {
     }
 
     public Object handleRequest(Request req, Response res) {
-        String reqData = req.body();
-        RegisterRequest registerRequest = gson.fromJson(reqData, RegisterRequest.class);
+        try {
+            String reqData = req.body();
+            RegisterRequest registerRequest = gson.fromJson(reqData, RegisterRequest.class);
 
-        ResultInterface result = service.register(registerRequest);
-        res.status(ReturnCases.getReturnCode(result));
-        return gson.toJson(result);
+            RegisterResult result = service.register(registerRequest);
+            res.status(200);
+            return gson.toJson(result);
+        } catch (Exception e) {
+            res.status(ReturnCases.getReturnCode(e.getMessage()));
+            return ReturnCases.generateJsonResponse(e.getMessage());
+
+        }
     }
 
 }

@@ -3,7 +3,7 @@ package handler;
 import status.ReturnCases;
 import com.google.gson.Gson;
 import requests.*;
-import responses.ResultInterface;
+import responses.*;
 import service.UserService;
 import spark.Request;
 import spark.Response;
@@ -19,11 +19,17 @@ public class LogoutHandler {
     }
 
     public Object handleRequest(Request req, Response res) {
-        String authToken = req.headers("Authorization");
-        LogoutRequest logoutRequest = new LogoutRequest(authToken);
+        try {
+            String authToken = req.headers("Authorization");
+            LogoutRequest logoutRequest = new LogoutRequest(authToken);
 
-        ResultInterface result = service.logout(logoutRequest);
-        res.status(ReturnCases.getReturnCode(result));
-        return gson.toJson(result);
+            LogoutResult result = service.logout(logoutRequest);
+            res.status(200);
+            return gson.toJson(result);
+        } catch (Exception e) {
+            res.status(ReturnCases.getReturnCode(e.getMessage()));
+            return ReturnCases.generateJsonResponse(e.getMessage());
+
+        }
     }
 }

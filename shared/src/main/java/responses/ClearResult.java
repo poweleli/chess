@@ -1,4 +1,4 @@
 package responses;
 
-public record ClearResult() implements ResultInterface{
+public record ClearResult() {
 }

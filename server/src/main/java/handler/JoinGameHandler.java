@@ -1,10 +1,10 @@
 package handler;
 
 import dataaccess.DataAccessException;
+import responses.JoinGameResult;
 import status.ReturnCases;
 import com.google.gson.Gson;
 import requests.JoinGameRequest;
-import responses.ResultInterface;
 import service.GameService;
 import spark.Request;
 import spark.Response;
@@ -18,14 +18,20 @@ public class JoinGameHandler {
     }
 
     public Object handleRequest(Request req, Response res) {
-        String reqData = req.body();
-        String authToken = req.headers("Authorization");
+        try {
+            String reqData = req.body();
+            String authToken = req.headers("Authorization");
 
-        JoinGameRequest joinGameRequest = gson.fromJson(reqData, JoinGameRequest.class);
-        joinGameRequest = new JoinGameRequest(authToken, joinGameRequest.playerColor(), joinGameRequest.gameID());
+            JoinGameRequest joinGameRequest = gson.fromJson(reqData, JoinGameRequest.class);
+            joinGameRequest = new JoinGameRequest(authToken, joinGameRequest.playerColor(), joinGameRequest.gameID());
 
-        ResultInterface result = service.joinGame(joinGameRequest);
-        res.status(ReturnCases.getReturnCode(result));
-        return gson.toJson(result);
+            JoinGameResult result = service.joinGame(joinGameRequest);
+            res.status(200);
+            return gson.toJson(result);
+        } catch (Exception e) {
+            res.status(ReturnCases.getReturnCode(e.getMessage()));
+            return ReturnCases.generateJsonResponse(e.getMessage());
+
+        }
     }
 }

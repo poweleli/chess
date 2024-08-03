@@ -1,4 +1,4 @@
 package responses;
 
-public record ErrorResult(String message) implements ResultInterface {
+public record ErrorResult(String message){
 }

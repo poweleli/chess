@@ -1,9 +1,11 @@
 package handler;
 
+import dataaccess.DataAccessException;
 import status.ReturnCases;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import requests.LoginRequest;
-import responses.ResultInterface;
+import responses.*;
 import service.UserService;
 import spark.Request;
 import spark.Response;
@@ -19,12 +21,17 @@ public class LoginHandler {
     }
 
     public Object handleRequest(Request req, Response res) {
-        String reqData = req.body();
-        LoginRequest loginRequest = gson.fromJson(reqData, LoginRequest.class);
+        try {
+            String reqData = req.body();
+            LoginRequest loginRequest = gson.fromJson(reqData, LoginRequest.class);
 
-        ResultInterface result = service.login(loginRequest);
-        res.status(ReturnCases.getReturnCode(result));
-        return gson.toJson(result);
+            LoginResult result = service.login(loginRequest);
+            res.status(200);
+            return gson.toJson(result);
+        } catch (Exception e) {
+            res.status(ReturnCases.getReturnCode(e.getMessage()));
+            return ReturnCases.generateJsonResponse(e.getMessage());
+        }
     }
 
 }

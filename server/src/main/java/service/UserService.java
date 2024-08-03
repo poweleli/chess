@@ -16,47 +16,29 @@ public class UserService {
         this.authDao = new AuthSQL();
     }
 
-    public ResultInterface register(RegisterRequest req) {
-        try {
-            UserData userData = new UserData(req.username(), req.password(), req.email());
-            userDao.createUser(userData);
+    public RegisterResult register(RegisterRequest req) throws DataAccessException{
+        UserData userData = new UserData(req.username(), req.password(), req.email());
+        userDao.createUser(userData);
 
-            String authToken = authDao.createAuth(req.username());
-            return new RegisterResult(req.username(), authToken);
-
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
+        String authToken = authDao.createAuth(req.username());
+        return new RegisterResult(req.username(), authToken);
     }
 
-    public ResultInterface login(LoginRequest req) {
-        try {
-            userDao.checkUserCreds(req.username(), req.password());
-            String authToken = authDao.createAuth(req.username());
-            return new LoginResult(req.username(), authToken);
-
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
+    public LoginResult login(LoginRequest req) throws DataAccessException{
+        userDao.checkUserCreds(req.username(), req.password());
+        String authToken = authDao.createAuth(req.username());
+        return new LoginResult(req.username(), authToken);
     }
 
-    public ResultInterface logout(LogoutRequest req) {
-        try {
-            authDao.deleteAuth(req.authToken());
-            return new LogoutResult();
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
+    public LogoutResult logout(LogoutRequest req) throws DataAccessException{
+        authDao.deleteAuth(req.authToken());
+        return new LogoutResult();
     }
 
-    public ResultInterface clear() {
-        try {
-            userDao.clear();
-            authDao.clear();
-            return new ClearResult();
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
+    public ClearResult clear() throws DataAccessException {
+        userDao.clear();
+        authDao.clear();
+        return new ClearResult();
     }
 
 }

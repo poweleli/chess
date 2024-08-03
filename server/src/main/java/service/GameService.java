@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.*;
+import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -22,43 +23,28 @@ public class GameService {
         this.authDao = new AuthSQL();
     }
 
-    public ResultInterface listGame(ListGamesRequest req) {
-        try {
-            authDao.getAuth(req.authToken());
-            Collection<GameData> games = gameDao.listGames();
-            return new ListGamesResult(games);
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
-    }
-    public ResultInterface createGame(CreateGameRequest req) {
-        try {
-            authDao.getAuth(req.authToken());
-            int gameID = gameDao.createGame(req.gameName());
-            return new CreateGameResult(gameID);
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
-
+    public ListGamesResult listGame(ListGamesRequest req) throws DataAccessException {
+        authDao.getAuth(req.authToken());
+        Collection<GameData> games = gameDao.listGames();
+        return new ListGamesResult(games);
     }
 
-    public ResultInterface joinGame(JoinGameRequest req) {
-        try {
-            authDao.getAuth(req.authToken());
-            AuthData authData = authDao.getAuth(req.authToken());
-            gameDao.addPlayer(req.gameID(), req.playerColor(), authData.username());
-            return new JoinGameResult();
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
+    public CreateGameResult createGame(CreateGameRequest req) throws DataAccessException{
+        authDao.getAuth(req.authToken());
+        int gameID = gameDao.createGame(req.gameName());
+        return new CreateGameResult(gameID);
     }
 
-    public ResultInterface clear(){
-        try {
-            gameDao.clear();
-            return new ClearResult();
-        } catch (DataAccessException e) {
-            return new ErrorResult(e.getMessage());
-        }
+    public JoinGameResult joinGame(JoinGameRequest req) throws DataAccessException {
+        authDao.getAuth(req.authToken());
+        AuthData authData = authDao.getAuth(req.authToken());
+        gameDao.addPlayer(req.gameID(), req.playerColor(), authData.username());
+        return new JoinGameResult();
+    }
+
+    public ClearResult clear() throws DataAccessException{
+        gameDao.clear();
+        return new ClearResult();
+
     }
 }
