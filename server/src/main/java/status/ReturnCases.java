@@ -1,11 +1,8 @@
 package status;
 
 import com.google.gson.JsonObject;
-import responses.*;
-import com.google.gson.Gson;
 
 public class ReturnCases {
-    private static final Gson gson = new Gson();
 
     public static int getErrorCode(String errorMessage) {
         return switch (errorMessage) {

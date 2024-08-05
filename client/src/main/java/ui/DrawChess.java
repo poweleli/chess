@@ -14,16 +14,6 @@ public class DrawChess {
 
     // Padded characters.
     private static final String EMPTY = "   ";
-    private static final String X = " X ";
-    private static final String O = " O ";
-
-    private static final String[] colsBlack = {"8", "7", "6", "5", "4", "3", "2", "1"};
-    private static final String[] headersBlack = { "a", "b", "c", "d", "e", "f", "g", "h" };
-    private static final String[] colsWhite = { "1", "2", "3", "4", "5", "6", "7", "8" };
-    private static final String[] headersWhite = {"h", "g", "f", "e", "d", "c", "b", "a"};
-    // Piece representations
-    private static final String[] INITIAL_ROW_BLACK  = {"R", "N", "B", "Q", "K", "B", "N", "R"};
-    private static final String[] INITIAL_ROW_WHITE = {"R", "N", "B", "K", "Q", "B", "N", "R"};
 
 
     public static void main(String[] args) {
@@ -142,28 +132,9 @@ public class DrawChess {
         }
     }
 
-
-    private static void setWhite(PrintStream out) {
-        out.print(SET_BG_COLOR_WHITE);
-        out.print(SET_TEXT_COLOR_WHITE);
-    }
-
-    private static void setRed(PrintStream out) {
-        out.print(SET_BG_COLOR_RED);
-        out.print(SET_TEXT_COLOR_RED);
-    }
-
     private static void setBlack(PrintStream out) {
         out.print(SET_BG_COLOR_BLACK);
         out.print(SET_TEXT_COLOR_BLACK);
     }
 
-    private static void printPlayer(PrintStream out, String player) {
-        out.print(SET_BG_COLOR_WHITE);
-        out.print(SET_TEXT_COLOR_BLACK);
-
-        out.print(player);
-
-        setWhite(out);
-    }
 }
