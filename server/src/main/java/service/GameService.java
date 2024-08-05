@@ -1,7 +1,6 @@
 package service;
 
 import dataaccess.*;
-import exception.ResponseException;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
