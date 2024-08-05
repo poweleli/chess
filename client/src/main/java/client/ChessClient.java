@@ -1,19 +1,17 @@
 package client;
 
-import client.ServerFacade;
 import exception.ResponseException;
 import model.GameData;
 import requests.*;
 import responses.*;
-import ui.ChessBoard;
-import ui.TicTacToe;
+import ui.DrawChess;
 
 import java.util.Scanner;
 
 public class ChessClient {
     private boolean activeApp;
-    private Scanner scanner;
-    private ServerFacade server;
+    private final Scanner scanner;
+    private final ServerFacade server;
     private State state = State.SIGNEDOUT;
     private String authToken = null;
 
@@ -38,6 +36,7 @@ public class ChessClient {
                     activeApp = Boolean.FALSE;
                 } else if (inputs[0].equals("CLEAR")) {
                     deleteDB();
+                    state = State.SIGNEDOUT;
                 } else if (state.equals(State.SIGNEDOUT)) {
                     if (inputs[0].equalsIgnoreCase("register")) {
                         register(inputs);
@@ -135,7 +134,7 @@ public class ChessClient {
         System.out.println("Game Board");
         String[] args = new String[]{"TEST"};
 //        TicTacToe.main(args);
-        ChessBoard.main(args);
+        DrawChess.main(args);
     }
 
     public void joinGame(String[] inputs) throws ResponseException{
