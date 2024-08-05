@@ -112,7 +112,7 @@ public class GameSQL implements GameDAOInterface{
     public void addPlayer(int gameID, String playerColor, String username) throws DataAccessException {
         checkValidColor(playerColor);
         GameData chessGame = getGame(gameID);
-        if (playerColor.equals("WHITE") && chessGame.whiteUsername() == null) {
+        if (playerColor.equalsIgnoreCase("WHITE") && chessGame.whiteUsername() == null) {
             try (Connection conn = DatabaseManager.getConnection()) {
                 try (var preparedStatement = conn.prepareStatement("UPDATE game SET white_username=? WHERE id=?")) {
                     preparedStatement.setString(1, username);
@@ -122,7 +122,7 @@ public class GameSQL implements GameDAOInterface{
             } catch (SQLException e) {
                 throw new DataAccessException(e.getMessage());
             }
-        } else if (playerColor.equals("BLACK") && chessGame.blackUsername() == null) {
+        } else if (playerColor.equalsIgnoreCase("BLACK") && chessGame.blackUsername() == null) {
             try (Connection conn = DatabaseManager.getConnection()) {
                 try (var preparedStatement = conn.prepareStatement("UPDATE game SET black_username=? WHERE id=?")) {
                     preparedStatement.setString(1, username);

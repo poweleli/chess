@@ -21,7 +21,7 @@ public class ListGamesHandler {
         try {
             String authToken = req.headers("Authorization");
             ListGamesRequest listGamesRequest = new ListGamesRequest(authToken);
-
+            System.out.println(listGamesRequest);
             ListGamesResult result = service.listGame(listGamesRequest);
             res.status(200);
             return gson.toJson(result);

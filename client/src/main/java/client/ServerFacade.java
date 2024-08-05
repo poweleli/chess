@@ -7,6 +7,7 @@ import exception.ResponseException;
 
 import java.io.*;
 import java.net.*;
+import java.util.Objects;
 
 public class ServerFacade {
     private final String serverUrl;
@@ -56,13 +57,13 @@ public class ServerFacade {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
-            http.setDoOutput(true);
-
             if (auth != null) {
                 http.addRequestProperty("Authorization", auth);
             }
-
-            writeBody(request, http);
+            if (!Objects.equals(method, "GET")) {
+                http.setDoOutput(true);
+                writeBody(request, http);
+            }
             http.connect();
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);

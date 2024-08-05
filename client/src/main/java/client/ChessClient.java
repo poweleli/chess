@@ -16,7 +16,6 @@ public class ChessClient {
     private ServerFacade server;
     private State state = State.SIGNEDOUT;
     private String authToken = null;
-//    private final ServerFacade server;
 
     public ChessClient(String urlString) {
         activeApp = Boolean.TRUE;
@@ -54,7 +53,6 @@ public class ChessClient {
                         createGame(inputs);
                     } else if (inputs[0].equalsIgnoreCase("list")) {
                         listGame(inputs);
-                        System.out.println("list");
                     } else if (inputs[0].equalsIgnoreCase("join")) {
                         joinGame(inputs);
                         System.out.println("join");
@@ -80,7 +78,7 @@ public class ChessClient {
             RegisterRequest req = new RegisterRequest(inputs[1], inputs[2], inputs[3]);
             RegisterResult res = server.register(req);
             authToken = res.authToken();
-            System.out.println(String.format("%s has been registered.", res.username()));
+            System.out.printf("%s has been registered.%n", res.username());
         } else {
             throw new ResponseException(500, "Expected <USERNAME> <PASSWORD> <EMAIL>");
         }
@@ -115,17 +113,16 @@ public class ChessClient {
     }
 
     public void printGames(ListGamesResult res) {
-        System.out.printf("%-20s %-10s %-15s %-15s ", "GameName", "GameID", "WhiteUsername", "BlackUsername");
+        System.out.printf("%-20s %-10s %-15s %-15s%n", "GameName", "GameID", "WhiteUsername", "BlackUsername");
         System.out.println("---------------------------------------------------------------");
         for (GameData game : res.games()) {
-            System.out.printf("%-20s %-10d %-15s %-15s",
+            System.out.printf("%-20s %-10d %-15s %-15s%n",
                     game.gameName(),
                     game.gameID(),
                     game.whiteUsername(),
                     game.blackUsername()
             );
         }
-
     }
 
     public void listGame(String[] inputs) throws ResponseException{
@@ -153,7 +150,8 @@ public class ChessClient {
     }
 
     public void deleteDB() throws ResponseException {
-
+        ClearResult res = server.deleteDB();
+        System.out.println("DB has been cleared");
     }
 
 

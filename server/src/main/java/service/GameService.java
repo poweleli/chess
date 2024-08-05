@@ -25,7 +25,9 @@ public class GameService {
 
     public ListGamesResult listGame(ListGamesRequest req) throws DataAccessException {
         authDao.getAuth(req.authToken());
+        System.out.println("got auth");
         Collection<GameData> games = gameDao.listGames();
+        System.out.println("got games");
         return new ListGamesResult(games);
     }
 
