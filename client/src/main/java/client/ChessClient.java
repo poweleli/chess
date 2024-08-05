@@ -6,6 +6,8 @@ import requests.*;
 import responses.*;
 import ui.DrawChess;
 
+import java.util.HashMap;
+import java.util.Random;
 import java.util.Scanner;
 
 public class ChessClient {
@@ -14,6 +16,9 @@ public class ChessClient {
     private final ServerFacade server;
     private State state = State.SIGNEDOUT;
     private String authToken = null;
+    private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private HashMap<String, Integer> gameIDs = new HashMap<>();
+    private HashMap<Integer, String> gameIDs2 = new HashMap<>();
 
     public ChessClient(String urlString) {
         activeApp = Boolean.TRUE;
@@ -100,11 +105,23 @@ public class ChessClient {
         System.out.println("Successfully logged out.");
     }
 
+    public String generateRandomGameID() {
+        Random random = new Random();
+        StringBuilder gameID = new StringBuilder();
+        for (int i = 0; i < 4; i++) {
+            gameID.append(ALPHANUMERIC.charAt(random.nextInt(ALPHANUMERIC.length())));
+        }
+        return gameID.toString();
+    }
     public void createGame(String[] inputs) throws ResponseException{
         if (inputs.length >= 2) {
             CreateGameRequest req = new CreateGameRequest(authToken, inputs[1]);
             CreateGameResult res = server.createGame(req);
-            System.out.printf("Successfully created \"%s\". Game ID: %d%n", inputs[1], res.gameID());
+            String randomID = generateRandomGameID();
+            gameIDs.put(randomID, res.gameID());
+            gameIDs2.put(res.gameID(), randomID);
+
+            System.out.printf("Successfully created \"%s\". Game ID: %s%n", inputs[1], randomID);
         } else {
             throw new ResponseException(500, "Expected <NAME>");
         }
@@ -114,9 +131,9 @@ public class ChessClient {
         System.out.printf("%-20s %-10s %-15s %-15s%n", "GameName", "GameID", "WhiteUsername", "BlackUsername");
         System.out.println("---------------------------------------------------------------");
         for (GameData game : res.games()) {
-            System.out.printf("%-20s %-10d %-15s %-15s%n",
+            System.out.printf("%-20s %-10s %-15s %-15s%n",
                     game.gameName(),
-                    game.gameID(),
+                    gameIDs2.get(game.gameID()),
                     game.whiteUsername(),
                     game.blackUsername()
             );
@@ -136,9 +153,9 @@ public class ChessClient {
     }
 
     public void joinGame(String[] inputs) throws ResponseException{
-        try { Integer.parseInt(inputs[1]); } catch (Exception e) {throw new ResponseException(500, "Expected <ID> [WHITE|BLACK]");}
+        try { gameIDs.get(inputs[1]); } catch (Exception e) {throw new ResponseException(500, "Expected <ID> [WHITE|BLACK]");}
         if (inputs.length >= 3) {
-            JoinGameRequest req = new JoinGameRequest(authToken, inputs[2], Integer.parseInt(inputs[1]));
+            JoinGameRequest req = new JoinGameRequest(authToken, inputs[2], gameIDs.get(inputs[1]));
             JoinGameResult res = server.joinGame(req);
             showGameBoard();
         } else {
