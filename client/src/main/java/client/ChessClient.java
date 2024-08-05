@@ -56,8 +56,7 @@ public class ChessClient {
                         joinGame(inputs);
                         System.out.println("join");
                     } else if (inputs[0].equalsIgnoreCase("observe")) {
-                        //                    observeGame();
-                        System.out.println("observe");
+                        observeGame();
                     } else if (inputs[0].equalsIgnoreCase("logout")) {
                         logout(inputs);
                         state = State.SIGNEDOUT;
@@ -133,7 +132,6 @@ public class ChessClient {
     public void showGameBoard() {
         System.out.println("Game Board");
         String[] args = new String[]{"TEST"};
-//        TicTacToe.main(args);
         DrawChess.main(args);
     }
 
@@ -146,6 +144,10 @@ public class ChessClient {
         } else {
             throw new ResponseException(500, "Expected <ID> [WHITE|BLACK]");
         }
+    }
+
+    public void observeGame() throws ResponseException {
+        showGameBoard();
     }
 
     public void deleteDB() throws ResponseException {
