@@ -139,8 +139,8 @@ public class GameSQL implements GameDAOInterface{
 
     private void checkValidColor(String playerColor) throws DataAccessException{
         if (!(playerColor != null &&
-                (playerColor.equals("WHITE") ||
-                        playerColor.equals("BLACK")))) {
+                (playerColor.equalsIgnoreCase("WHITE") ||
+                        playerColor.equalsIgnoreCase("BLACK")))) {
             throw new DataAccessException("Error: bad request");
         }
     }
