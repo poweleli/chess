@@ -2,6 +2,7 @@ package client;
 
 import client.ServerFacade;
 import exception.ResponseException;
+import requests.LoginRequest;
 import requests.RegisterRequest;
 import responses.*;
 
@@ -36,10 +37,8 @@ public class ChessClient {
                 } else if (state.equals(State.SIGNEDOUT)) {
                     if (inputs[0].equalsIgnoreCase("register")) {
                         System.out.println(register(inputs));
-                        System.out.println("register");
                     } else if (inputs[0].equalsIgnoreCase("login")) {
-                        //                    login(input);
-                        System.out.println("login");
+                        System.out.println(login(inputs));
                         state = State.SIGNEDIN;
                     } else {
                         System.out.println("Invalid Request");
@@ -58,7 +57,7 @@ public class ChessClient {
                         //                    observeGame();
                         System.out.println("observe");
                     } else if (inputs[0].equalsIgnoreCase("logout")) {
-                        //                    logout();
+//                        logout();
                         System.out.println("logout");
                         state = State.SIGNEDOUT;
 
@@ -79,6 +78,15 @@ public class ChessClient {
             return String.format("%s has been registered.", res.username());
         }
         throw new ResponseException(500, "Expected <USERNAME> <PASSWORD> <EMAIL>");
+    }
+
+    public String login(String[] inputs) throws ResponseException{
+        if (inputs.length >= 3) {
+            LoginRequest req = new LoginRequest(inputs[1], inputs[2]);
+            LoginResult res = server.login(req);
+            return String.format("%s successfully logged in.", res.username());
+        }
+        throw new ResponseException(500, "Expected <USERNAME> <PASSWORD>");
     }
 
 
