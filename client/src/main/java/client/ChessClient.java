@@ -153,8 +153,7 @@ public class ChessClient {
     }
 
     public void joinGame(String[] inputs) throws ResponseException{
-        try { gameIDs.get(inputs[1]); } catch (Exception e) {throw new ResponseException(500, "Expected <ID> [WHITE|BLACK]");}
-        if (inputs.length >= 3) {
+        if (gameIDs.get(inputs[1]) != null && inputs.length >= 3) {
             JoinGameRequest req = new JoinGameRequest(authToken, inputs[2], gameIDs.get(inputs[1]));
             JoinGameResult res = server.joinGame(req);
             showGameBoard();
