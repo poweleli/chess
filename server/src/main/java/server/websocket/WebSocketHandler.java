@@ -5,7 +5,10 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
+import javax.management.Notification;
 import java.io.IOException;
 import java.util.Timer;
 
@@ -14,20 +17,29 @@ import java.util.Timer;
 public class WebSocketHandler {
 
     private final ConnectionManager connections = new ConnectionManager();
+    private final Gson gson = new Gson();
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String message) throws IOException {
-        UserGameCommand action = new Gson().fromJson(message, UserGameCommand.class);
-        switch (action.getCommandType()) {
-            case CONNECT -> connect(action, session);
-            case MAKE_MOVE -> makeMove(action,session);
-            case LEAVE -> leave(action, session);
-            case RESIGN -> resign(action, session);
+    public void onMessage(Session session, String message) {
+        try {
+            UserGameCommand action = gson.fromJson(message, UserGameCommand.class);
+            switch (action.getCommandType()) {
+                case CONNECT -> connect(action, session);
+                case MAKE_MOVE -> makeMove(action, session);
+                case LEAVE -> leave(action, session);
+                case RESIGN -> resign(action, session);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
-    private void connect(UserGameCommand action, Session session) {
-
+    private void connect(UserGameCommand action, Session session) throws IOException{
+        connections.add(action.getAuthString(), session);
+        System.out.println("added successfully");
+        var message = String.format("%s is in the shop", "user"); //TODO: fix this to name
+        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
+        connections.broadcast(notification);
     }
 
     private void makeMove(UserGameCommand action, Session session) {
