@@ -36,21 +36,35 @@ public class WebSocketHandler {
     }
 
     private void connect(UserGameCommand action, Session session) throws Exception {
-        Set<Session> currSessions = connections.get(action.getGameID());
+        if (validAction(action)) {
+            Set<Session> currSessions = connections.get(action.getGameID());
+            connections.computeIfAbsent(action.getGameID(), k -> new HashSet<>()).add(session);
 
-        connections.computeIfAbsent(action.getGameID(), k -> new HashSet<>()).add(session);
-
-        if (currSessions != null) {
-            NotificationMessage groupMessage = getConnectNotification(action);
-            for (var s: currSessions) {
-                if (s != session) {
-                    sendMessage(s, groupMessage);
+            if (currSessions != null) {
+                NotificationMessage groupMessage = getConnectNotification(action);
+                for (var s : currSessions) {
+                    if (s != session) {
+                        sendMessage(s, groupMessage);
+                    }
                 }
             }
-        }
 
-        LoadGameMessage gameMessage = getGameMessage(action);
-        sendMessage(session, gameMessage);
+            LoadGameMessage gameMessage = getGameMessage(action);
+            sendMessage(session, gameMessage);
+        }
+        else {
+            sendMessage(session, new ErrorMessage("Error: invalid request."));
+        }
+    }
+
+    private Boolean validAction(UserGameCommand action) {
+        try {
+            webSocketService.getGameData(action.getGameID());
+            webSocketService.getUser(action.getAuthString());
+            return Boolean.TRUE;
+        } catch(Exception e) {
+            return Boolean.FALSE;
+        }
     }
 
     private LoadGameMessage getGameMessage(UserGameCommand action) throws Exception {
