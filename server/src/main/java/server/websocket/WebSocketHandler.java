@@ -5,24 +5,25 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import websocket.commands.UserGameCommand;
-import websocket.messages.NotificationMessage;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
+import model.*;
 
 import javax.management.Notification;
 import java.io.IOException;
-import java.util.Timer;
+import java.util.*;
 
 
 @WebSocket
 public class WebSocketHandler {
-
-    private final ConnectionManager connections = new ConnectionManager();
     private final Gson gson = new Gson();
+    private final Map<Integer,Set<Session>> connections = new HashMap<>();
+    private WebSocketService webSocketService;
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) {
         try {
             UserGameCommand action = gson.fromJson(message, UserGameCommand.class);
+            webSocketService = new WebSocketService();
             switch (action.getCommandType()) {
                 case CONNECT -> connect(action, session);
                 case MAKE_MOVE -> makeMove(action, session);
@@ -34,12 +35,42 @@ public class WebSocketHandler {
         }
     }
 
-    private void connect(UserGameCommand action, Session session) throws IOException{
-        connections.add(action.getAuthString(), session);
-        System.out.println("added successfully");
-        var message = String.format("%s is in the shop", "user"); //TODO: fix this to name
-        var notification = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, message);
-        connections.broadcast(notification);
+    private void connect(UserGameCommand action, Session session) throws Exception {
+        Set<Session> currSessions = connections.get(action.getGameID());
+
+        connections.computeIfAbsent(action.getGameID(), k -> new HashSet<>()).add(session);
+
+        if (currSessions != null) {
+            NotificationMessage groupMessage = getConnectNotification(action);
+            for (var s: currSessions) {
+                if (s != session) {
+                    sendMessage(s, groupMessage);
+                }
+            }
+        }
+
+        LoadGameMessage gameMessage = getGameMessage(action);
+        sendMessage(session, gameMessage);
+    }
+
+    private LoadGameMessage getGameMessage(UserGameCommand action) throws Exception {
+        GameData gameData = webSocketService.getGameData(action.getGameID());
+        return new LoadGameMessage(gameData);
+    }
+
+    private NotificationMessage getConnectNotification(UserGameCommand action) throws Exception {
+        GameData gameData = webSocketService.getGameData(action.getGameID());
+        AuthData authData = webSocketService.getUser(action.getAuthString());
+
+        String message;
+        if (Objects.equals(gameData.blackUsername(), authData.username())) {
+            message = String.format("%s is joining the game as %s player", authData.username(), "black");
+        } else if (Objects.equals(gameData.whiteUsername(), authData.username())) {
+            message = String.format("%s is joining the game as %s player", authData.username(), "white");
+        } else {
+            message = String.format("%s is joining the game as an observer", authData.username());
+        }
+        return new NotificationMessage(message);
     }
 
     private void makeMove(UserGameCommand action, Session session) {
@@ -52,6 +83,10 @@ public class WebSocketHandler {
 
     private void resign(UserGameCommand action, Session session) {
 
+    }
+
+    public void sendMessage(Session session, ServerMessage message) throws IOException {
+        session.getRemote().sendString(new Gson().toJson(message));
     }
 
 //    private void enter(String visitorName, Session session) throws IOException {
