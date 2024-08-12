@@ -87,9 +87,27 @@ public class GameDAO implements GameDAOInterface {
 
     @Override
     public void updateGame(int gameId, ChessGame game) throws DataAccessException {
-        GameData gameData = getGame(gameID);
+        GameData gameData = getGame(gameId);
         games.put(gameId, new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
                             gameData.gameName(), game));
     }
 
+    @Override
+    public void removePlayer(ChessGame.TeamColor color, int gameID) throws DataAccessException {
+        GameData gameData = getGame(gameID);
+        if (color.equals(ChessGame.TeamColor.WHITE))  {
+            games.put(gameID, new GameData(gameData.gameID(), null, gameData.blackUsername(),
+                    gameData.gameName(), gameData.game()));
+        } else {
+            games.put(gameID, new GameData(gameData.gameID(), gameData.whiteUsername(), null,
+                    gameData.gameName(), gameData.game()));
+        }
+    }
+
+    @Override
+    public void setGameOver(int gameID) throws DataAccessException {
+        GameData gameData = getGame(gameID);
+        gameData.game().setGameOver();
+        games.put(gameID, gameData);
+    }
 }

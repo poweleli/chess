@@ -76,6 +76,76 @@ public class WebSocketHandler {
         }
     }
 
+    private void makeMove(MakeMoveCommand action, Session session) throws IOException {
+        try {
+            TeamColor userColor = getUserColor();
+            if (userColor == null) {
+                throw new ResponseException(500, String.format("Error: %s is an observer.",authData.username()));
+            }
+            TeamColor otherColor = userColor.equals(TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+//            if (!userColor.equals(gameData.game().getTeamTurn())) {
+//                throw new ResponseException(500, "Error: invalid move");
+//            }
+            if (gameData.game().gameOver()) {
+                throw new ResponseException(500, "Error: game over");
+            }
+
+            gameData.game().makeMove(action.getChessMove());
+            gameData = gameService.updateGame(action.getGameID(), gameService.getGame(action.getGameID()).game());
+            sendMessageAll(action.getGameID(), new LoadGameMessage(gameData));
+            broadcast(action.getGameID(), new NotificationMessage(action.getChessMove().toString()), session);
+
+            if (gameData.game().isInCheckmate(otherColor)) {
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in checkmate.", otherColor)));
+            } else if (gameData.game().isInStalemate(otherColor)) {
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in stalemate.", otherColor)));
+            } else if (gameData.game().isInCheck(otherColor) ) {
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in check.", otherColor)));
+            }
+
+        } catch (Exception e) {
+            sendMessage(session, new ErrorMessage(e.getMessage()));
+        }
+    }
+
+    private void leave(UserGameCommand action, Session session) throws IOException{
+        try {
+            connections.get(action.getGameID()).remove(session);
+            TeamColor userColor = getUserColor();
+            if (userColor != null) {
+                gameService.removePlayer(userColor, action.getGameID());
+            }
+            sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s has left the game", authData.username())));
+        } catch (Exception e) {
+            sendMessage(session, new ErrorMessage(e.getMessage()));
+        }
+    }
+
+    private void resign(UserGameCommand action, Session session) throws IOException {
+        try {
+            TeamColor userColor = getUserColor();
+            if (!gameData.game().gameOver()) {
+                if (userColor == null) {
+                    throw new ResponseException(500, "Error: cannot resign as observer");
+                }
+                gameService.setGameOver(action.getGameID());
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s has left resigned", authData.username())));
+            } else {
+                throw new ResponseException(500, "Error: game is already over");
+            }
+
+        } catch (Exception e) {
+            sendMessage(session, new ErrorMessage(e.getMessage()));
+        }
+
+    }
+
+    public void sendMessage(Session session, ServerMessage message) throws IOException {
+        if (session.isOpen()) {
+            session.getRemote().sendString(new Gson().toJson(message));
+        }
+    }
+
     private void broadcast(int gameID, ServerMessage message, Session currSession) throws Exception {
         Set<Session> sessions = connections.get(gameID);
         if (sessions != null) {
@@ -106,57 +176,16 @@ public class WebSocketHandler {
         connections.entrySet().removeIf(entry -> entry.getValue().isEmpty());
     }
 
-    private void makeMove(MakeMoveCommand action, Session session) throws IOException {
-        try {
-            TeamColor userColor = validUserColor();
-            TeamColor otherColor = userColor.equals(TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
-            gameData.game().makeMove(action.getChessMove());
 
-            gameData = gameService.updateGame(action.getGameID(), gameService.getGame(action.getGameID()).game());
-            sendMessageAll(action.getGameID(), new LoadGameMessage(gameData));
-            broadcast(action.getGameID(), new NotificationMessage(action.getChessMove().toString()), session);
-
-            if (gameData.game().isInCheckmate(otherColor)) {
-                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in checkmate.", otherColor)));
-            } else if (gameData.game().isInStalemate(otherColor)) {
-                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in stalemate.", otherColor)));
-            } else if (gameData.game().isInCheck(otherColor) ) {
-                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in check.", otherColor)));
-            }
-
-        } catch (Exception e) {
-            sendMessage(session, new ErrorMessage(e.getMessage()));
-        }
-    }
-
-    private void leave(UserGameCommand action, Session session) {
-        connections.get(action.getGameID()).remove(session);
-    }
-
-    private void resign(UserGameCommand action, Session session) {
-
-    }
-
-    public void sendMessage(Session session, ServerMessage message) throws IOException {
-        if (session.isOpen()) {
-            session.getRemote().sendString(new Gson().toJson(message));
-        }
-    }
-
-    private TeamColor validUserColor() throws Exception {
+    private TeamColor getUserColor() throws Exception {
 //         check if observer
         if (authData.username().equals(gameData.blackUsername())) {
            return TeamColor.BLACK;
         } else if (authData.username().equals(gameData.whiteUsername())) {
             return TeamColor.WHITE;
         } else {
-            throw new ResponseException(500, String.format("Error: %s is an observer.",authData.username()));
+            return null;
         }
-    }
-
-    private LoadGameMessage getGameMessage(UserGameCommand action, Session session) throws Exception {
-        GameData gameData = gameService.getGame(action.getGameID());
-        return new LoadGameMessage(gameData);
     }
 
     private NotificationMessage getConnectNotification(UserGameCommand action) throws ResponseException {

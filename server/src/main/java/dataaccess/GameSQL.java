@@ -170,4 +170,42 @@ public class GameSQL implements GameDAOInterface{
         }
 
     }
+
+    @Override
+    public void setGameOver(int gameID) throws DataAccessException {
+        GameData gameData = getGame(gameID);
+        gameData.game().setGameOver();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("UPDATE game SET chess_game=? WHERE id=?")) {
+                preparedStatement.setString(1, gson.toJson(gameData.game()));
+                preparedStatement.setString(2, String.valueOf(gameID));
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+
+
+    }
+
+    @Override
+    public void removePlayer(ChessGame.TeamColor color, int gameID) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            if (color.equals(ChessGame.TeamColor.WHITE)) {
+                try (var preparedStatement = conn.prepareStatement("UPDATE game SET white_username=? WHERE id=?")) {
+                    preparedStatement.setString(1, null);
+                    preparedStatement.setString(2, String.valueOf(gameID));
+                    preparedStatement.executeUpdate();
+                }
+            } else {
+                try (var preparedStatement = conn.prepareStatement("UPDATE game SET black_username=? WHERE id=?")) {
+                    preparedStatement.setString(1, null);
+                    preparedStatement.setString(2, String.valueOf(gameID));
+                    preparedStatement.executeUpdate();
+                }
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+    }
 }

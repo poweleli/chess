@@ -14,6 +14,7 @@ import java.util.Objects;
 public class ChessGame {
     TeamColor teamTurnColor = TeamColor.WHITE;
     ChessBoard gameBoard;
+    Boolean gameOver = Boolean.FALSE;
 
     public ChessGame() {
         this.gameBoard = new ChessBoard();
@@ -103,7 +104,8 @@ public class ChessGame {
         ChessPiece movingPiece = move.getPromotionPiece()==null ? gameBoard.getPiece(move.getStartPosition()) :
                 new ChessPiece(gameBoard.getPiece(move.getStartPosition()).getTeamColor(), move.getPromotionPiece());
 
-        if (movingPiece != null && // check if piece is null
+        if (!gameOver &&
+            movingPiece != null && // check if piece is null
             movingPiece.getTeamColor().equals(teamTurnColor) && // check if piece's turn
             checkLegalMove(move) && // check if the move is legal
             validMoves(move.getStartPosition()).contains(move) // check if the move is valid
@@ -184,6 +186,7 @@ public class ChessGame {
                 }
             }
         }
+        setGameOver();
         return Boolean.TRUE;
     }
 
@@ -215,6 +218,12 @@ public class ChessGame {
     public ChessBoard getBoard() {
         return gameBoard;
     }
+
+    public void setGameOver() {
+        gameOver = Boolean.TRUE;
+    }
+
+    public Boolean gameOver() {return gameOver;}
 
     @Override
     public boolean equals(Object o) {
