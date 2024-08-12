@@ -12,12 +12,13 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
-    TeamColor teamTurnColor = TeamColor.WHITE;
+    TeamColor teamTurnColor;
     ChessBoard gameBoard;
     Boolean gameOver = Boolean.FALSE;
 
     public ChessGame() {
         this.gameBoard = new ChessBoard();
+        teamTurnColor = TeamColor.WHITE;
         gameBoard.resetBoard();
     }
 
@@ -112,9 +113,8 @@ public class ChessGame {
         ) {
                 gameBoard.addPiece(move.getStartPosition(), null);
                 gameBoard.addPiece(move.getEndPosition(), movingPiece);
+                setTeamTurn(teamSwitch());
         } else {throw new InvalidMoveException("Error: invalid move.");}
-
-        setTeamTurn(teamSwitch());
     }
 
     public ChessPosition findPiecePos(TeamColor teamColor, ChessPiece.PieceType pieceType) {
@@ -186,7 +186,6 @@ public class ChessGame {
                 }
             }
         }
-        setGameOver();
         return Boolean.TRUE;
     }
 

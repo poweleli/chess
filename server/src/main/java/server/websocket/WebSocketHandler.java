@@ -83,15 +83,15 @@ public class WebSocketHandler {
                 throw new ResponseException(500, String.format("Error: %s is an observer.",authData.username()));
             }
             TeamColor otherColor = userColor.equals(TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
-//            if (!userColor.equals(gameData.game().getTeamTurn())) {
-//                throw new ResponseException(500, "Error: invalid move");
-//            }
+            if (!userColor.equals(gameData.game().getTeamTurn())) {
+                throw new ResponseException(500, "Error: invalid move");
+            }
             if (gameData.game().gameOver()) {
                 throw new ResponseException(500, "Error: game over");
             }
 
             gameData.game().makeMove(action.getChessMove());
-            gameData = gameService.updateGame(action.getGameID(), gameService.getGame(action.getGameID()).game());
+            gameData = gameService.updateGame(action.getGameID(), gameData.game());
             sendMessageAll(action.getGameID(), new LoadGameMessage(gameData));
             broadcast(action.getGameID(), new NotificationMessage(action.getChessMove().toString()), session);
 
