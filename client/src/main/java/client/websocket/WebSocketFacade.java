@@ -1,10 +1,12 @@
 package client.websocket;
 
 import chess.ChessBoard;
+import chess.ChessMove;
 import client.websocket.ServerMessageHandler;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import model.GameData;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.*;
 
@@ -39,7 +41,7 @@ public class WebSocketFacade extends Endpoint {
                         case LOAD_GAME -> {
                             LoadGameMessage loadGameMessage = gson.fromJson(message, LoadGameMessage.class);
                             latestData = loadGameMessage.getGame();
-                            serverMessageHandler.updateBoard(latestData);
+                            serverMessageHandler.getBoard(latestData);
                         }
                     }
                 }
@@ -59,6 +61,41 @@ public class WebSocketFacade extends Endpoint {
             session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (Exception e) {
             throw new ResponseException(500, "Error: join game failure");
+        }
+    }
+
+    public void makeMove(String authToken, int gameID, ChessMove move) throws ResponseException {
+        try {
+            UserGameCommand command = new MakeMoveCommand(MakeMoveCommand.CommandType.MAKE_MOVE, authToken, gameID, move);
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            throw new ResponseException(500, "Error: make move failure");
+        }
+    }
+
+    public void redraw() throws ResponseException {
+        try {
+            serverMessageHandler.getBoard(latestData);
+        } catch (Exception e) {
+            throw new ResponseException(500, "Error: redraw failure");
+        }
+    }
+
+    public void leaveGame(String authToken, int gameID) throws ResponseException {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            throw new ResponseException(500, "Error: redraw failure");
+        }
+    }
+
+    public void resign(String authToken, int gameID) throws ResponseException {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+            session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (Exception e) {
+            throw new ResponseException(500, "Error: resign failure");
         }
     }
 }

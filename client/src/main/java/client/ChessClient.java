@@ -1,5 +1,7 @@
 package client;
 
+import chess.ChessMove;
+import chess.ChessPosition;
 import client.websocket.ServerMessageHandler;
 import client.websocket.WebSocketFacade;
 import exception.ResponseException;
@@ -21,9 +23,11 @@ public class ChessClient {
     private final ServerMessageHandler serverMessageHandler;
     private State state = State.SIGNEDOUT;
     private String authToken = null;
-    private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private final HashMap<String, Integer> gameIDs = new HashMap<>();
-    private final HashMap<Integer, String> gameIDs2 = new HashMap<>();
+    private int currGame;
+
+//    private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+//    private final HashMap<String, Integer> gameIDs = new HashMap<>();
+//    private final HashMap<Integer, String> gameIDs2 = new HashMap<>();
 
     public ChessClient(String urlString, ServerMessageHandler serverMessageHandler) {
         serverUrl = urlString;
@@ -64,14 +68,14 @@ public class ChessClient {
                     if (inputs[0].equalsIgnoreCase("highlight")) {
                         highlight(inputs);
                     } else if (inputs[0].equalsIgnoreCase("move")) {
-//                        move(inputs);
+                        makeMove(inputs);
                     } else if (inputs[0].equalsIgnoreCase("redraw")) {
-//                        redraw(inputs);
+                        redraw();
                     } else if (inputs[0].equalsIgnoreCase("leave")) {
-//                        leave(inputs);
-//                        state = State.SIGNEDIN;
+                        leave();
+                        state = State.SIGNEDIN;
                     } else if (inputs[0].equalsIgnoreCase("resign")) {
-//                        resign(inputs);
+                        resign();
                     } else {
                         System.out.println("Invalid Request");
                     }
@@ -138,14 +142,6 @@ public class ChessClient {
         System.out.println("Successfully logged out.");
     }
 
-    public String generateRandomGameID() {
-        Random random = new Random();
-        StringBuilder gameID = new StringBuilder();
-        for (int i = 0; i < 4; i++) {
-            gameID.append(ALPHANUMERIC.charAt(random.nextInt(ALPHANUMERIC.length())));
-        }
-        return gameID.toString();
-    }
     public void createGame(String[] inputs) throws ResponseException{
         if (inputs.length >= 2) {
             CreateGameRequest req = new CreateGameRequest(authToken, inputs[1]);
@@ -180,20 +176,9 @@ public class ChessClient {
         printGames(res);
     }
 
-//    public void move(String[] inputs) throws ResponseException {
-//        if (inputs.length >=)
-//
-//    }
 
     public void highlight(String[] inputs) throws ResponseException {
 
-    }
-
-
-    public void showGameBoard() {
-        System.out.println("Game Board");
-        String[] args = new String[]{"TEST"};
-        DrawChess.main(args);
     }
 
     public void createWS() throws ResponseException {
@@ -209,6 +194,7 @@ public class ChessClient {
                 JoinGameResult res = server.joinGame(req);
                 createWS();
                 ws.joinGame(authToken, Integer.parseInt(inputs[1]));
+                this.currGame = Integer.parseInt(inputs[1]);
 //            showGameBoard();
             } catch (Exception e) {
                 throw new ResponseException(500, e.getMessage());
@@ -218,9 +204,66 @@ public class ChessClient {
         }
     }
 
-    public void observeGame() throws ResponseException {
-        showGameBoard();
+    public void makeMove(String[] inputs) throws ResponseException{
+        if (inputs.length >= 3) {
+            createWS();
+            ChessMove move = getChessMove(inputs[1], inputs[2]);
+            ws.makeMove(authToken, currGame, move);
+        } else {
+            throw new ResponseException(500, "Expected <ID> [WHITE|BLACK]");
+        }
     }
+
+    public ChessMove getChessMove(String start, String end) throws ResponseException{
+        try {
+            ChessPosition startPos = convertPosition(start);
+            ChessPosition endPos = convertPosition(end);
+
+            return new ChessMove(startPos, endPos, null);
+        } catch (Exception e) {
+            throw new ResponseException(500, "Error: invalid move.");
+        }
+    }
+
+    public ChessPosition convertPosition(String position) throws ResponseException {
+        try {
+            char columnChar = position.charAt(0);
+            char rowChar = position.charAt(1);
+
+            int column = Character.toLowerCase(columnChar) - 'a' + 1; // Convert 'A' to 0, 'B' to 1, etc.
+            int row = 9 - Character.getNumericValue(rowChar); // Convert '1' to 0, '2' to 1, etc.
+
+            if (column < 0 || column > 7 || row < 0 || row > 7) {
+                throw new IllegalArgumentException("Chess position out of bounds.");
+            }
+            return new ChessPosition(row,column);
+        } catch (Exception e) {
+            throw new ResponseException(500, "Error: invalid move");
+        }
+    }
+
+
+
+    public void observeGame() throws ResponseException {
+//        showGameBoard();
+    }
+
+    public void redraw() throws ResponseException {
+        createWS();
+        ws.redraw();
+    }
+
+    public void leave() throws ResponseException {
+        createWS();
+        ws.leaveGame(authToken, currGame);
+    }
+
+    public void resign() throws ResponseException {
+        createWS();
+        ws.resign(authToken, currGame);
+    }
+
+
 
     public void deleteDB() throws ResponseException {
         ClearResult res = server.deleteDB();
@@ -243,8 +286,8 @@ public class ChessClient {
                     """);
         } else if (state.equals(State.GAMEPLAY)) {
             System.out.println("""
-                    highlight <ROW> <COL> - highlight legal chess moves for piece
-                    move <C_ROW><C_COL> <T_ROW><T_COL> - make chess move from current piece to target space
+                    highlight <COL><ROW> - highlight legal chess moves for piece
+                    move <C_COL><C_ROW> <T_COL><T_ROW> - make chess move from current piece to target space
                     redraw - redraws chess board
                     leave - leave chess game
                     resign - forfeit the chess game

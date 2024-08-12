@@ -129,7 +129,7 @@ public class WebSocketHandler {
                     throw new ResponseException(500, "Error: cannot resign as observer");
                 }
                 gameService.setGameOver(action.getGameID());
-                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s has left resigned", authData.username())));
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s has resigned", authData.username())));
             } else {
                 throw new ResponseException(500, "Error: game is already over");
             }

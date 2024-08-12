@@ -25,13 +25,11 @@ public class DrawChess {
     private static final String[] colLabels = new String[]{ "a", "b", "c", "d", "e", "f", "g", "h" };
     private ChessBoard board;
 
-    public void setBoard(ChessBoard board) {
-        this.board = board;
-    }
-
     public void drawBoard(ChessBoard board) {
+        this.board = board;
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         out.print(ERASE_SCREEN);
+        out.println();
         drawBoard(out);
     }
 

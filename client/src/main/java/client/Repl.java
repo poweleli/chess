@@ -1,7 +1,9 @@
 package client;
 
+import chess.ChessBoard;
 import client.websocket.ServerMessageHandler;
 import model.GameData;
+import ui.DrawChess;
 import websocket.messages.ServerMessage;
 
 import java.util.Scanner;
@@ -21,11 +23,13 @@ public class Repl implements ServerMessageHandler {
 
     @Override
     public void notify(ServerMessage serverMessage) {
-        System.out.println(SET_TEXT_COLOR_RED + serverMessage.getMessage());
+        System.out.println(serverMessage.getMessage());
     }
 
     @Override
-    public void updateBoard(GameData latestData) {
-        System.out.println("UPDATING BOARD HERE");
+    public void getBoard(GameData latestData) {
+        ChessBoard board = latestData.game().getBoard();
+        DrawChess printer = new DrawChess();
+        printer.drawBoard(board);
     }
 }
