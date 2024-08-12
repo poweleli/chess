@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.*;
 import model.AuthData;
 import model.GameData;
@@ -46,6 +47,16 @@ public class GameService {
     public ClearResult clear() throws DataAccessException{
         gameDao.clear();
         return new ClearResult();
-
     }
+
+    public GameData updateGame(int gameID, ChessGame game) throws DataAccessException {
+        gameDao.updateGame(gameID, game);
+        return gameDao.getGame(gameID);
+    }
+
+    public GameData getGame(int gameID) throws DataAccessException {
+        return gameDao.getGame(gameID);
+    }
+
+
 }

@@ -41,4 +41,8 @@ public class UserService {
         return new ClearResult();
     }
 
+    public AuthData getAuthUser(String authToken) throws DataAccessException {
+        return authDao.getAuth(authToken);
+    }
+
 }

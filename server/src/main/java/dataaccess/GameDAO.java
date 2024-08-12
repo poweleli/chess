@@ -84,4 +84,12 @@ public class GameDAO implements GameDAOInterface {
         gameID = gameID + 1;
         return gameID;
     }
+
+    @Override
+    public void updateGame(int gameId, ChessGame game) throws DataAccessException {
+        GameData gameData = getGame(gameID);
+        games.put(gameId, new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
+                            gameData.gameName(), game));
+    }
+
 }

@@ -1,12 +1,23 @@
 package server.websocket;
 
-import com.google.gson.Gson;
+import chess.ChessGame;
+import chess.ChessMove;
+import com.google.gson.*;
+import dataaccess.AuthSQL;
+import dataaccess.DataAccessException;
+import exception.ResponseException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import requests.CreateGameRequest;
+import service.GameService;
+import service.UserService;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.*;
 import model.*;
+import chess.ChessGame.TeamColor;
+import server.Server;
 
 import javax.management.Notification;
 import java.io.IOException;
@@ -16,66 +27,139 @@ import java.util.*;
 @WebSocket
 public class WebSocketHandler {
     private final Gson gson = new Gson();
-    private final Map<Integer,Set<Session>> connections = new HashMap<>();
-    private WebSocketService webSocketService;
+    private final Map<Integer, Set<Session>> connections = new HashMap<>();
+    private GameService gameService;
+    private UserService userService;
+    private GameData gameData;
+    private AuthData authData;
 
     @OnWebSocketMessage
     public void onMessage(Session session, String message) {
         try {
             UserGameCommand action = gson.fromJson(message, UserGameCommand.class);
-            webSocketService = new WebSocketService();
+            checkValidAction(action, session);
+
             switch (action.getCommandType()) {
                 case CONNECT -> connect(action, session);
-                case MAKE_MOVE -> makeMove(action, session);
+                case MAKE_MOVE -> makeMove(gson.fromJson(message, MakeMoveCommand.class), session);
                 case LEAVE -> leave(action, session);
                 case RESIGN -> resign(action, session);
+
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
-    private void connect(UserGameCommand action, Session session) throws Exception {
-        if (validAction(action)) {
-            Set<Session> currSessions = connections.get(action.getGameID());
-            connections.computeIfAbsent(action.getGameID(), k -> new HashSet<>()).add(session);
+    private void checkValidAction(UserGameCommand action, Session session) throws Exception {
+        try {
+            gameService = new GameService();
+            userService = new UserService();
+            authData = userService.getAuthUser(action.getAuthString());
+            gameData = gameService.getGame(action.getGameID());
+        } catch (Exception e) {
+            sendMessage(session, new ErrorMessage("Error: invalid request."));
+            throw new ResponseException(500, "error");
+        }
+    }
 
-            if (currSessions != null) {
-                NotificationMessage groupMessage = getConnectNotification(action);
-                for (var s : currSessions) {
-                    if (s != session) {
-                        sendMessage(s, groupMessage);
-                    }
+    private void connect(UserGameCommand action, Session session) throws Exception {
+        try {
+            connections.computeIfAbsent(action.getGameID(), k -> new HashSet<>()).add(session);
+            NotificationMessage groupMessage = getConnectNotification(action);
+            broadcast(action.getGameID(), groupMessage, session);
+
+            LoadGameMessage gameMessage = new LoadGameMessage(gameData);
+            sendMessage(session, gameMessage);
+        } catch (Exception e) {
+            sendMessage(session, new ErrorMessage(e.getMessage()));
+        }
+    }
+
+    private void broadcast(int gameID, ServerMessage message, Session currSession) throws Exception {
+        Set<Session> sessions = connections.get(gameID);
+        if (sessions != null) {
+            for (var s : sessions) {
+                if (s != currSession) {
+                    sendMessage(s, message);
                 }
             }
-
-            LoadGameMessage gameMessage = getGameMessage(action);
-            sendMessage(session, gameMessage);
         }
-        else {
-            sendMessage(session, new ErrorMessage("Error: invalid request."));
-        }
+        cleanupConnections();
     }
 
-    private Boolean validAction(UserGameCommand action) {
+    private void sendMessageAll(int gameID, ServerMessage message) throws Exception {
+        Set<Session> sessions = connections.get(gameID);
+        if (sessions != null) {
+            for (var s : sessions) {
+                sendMessage(s, message);
+            }
+        }
+
+        cleanupConnections();
+    }
+
+    public void cleanupConnections() {
+        for (Map.Entry<Integer, Set<Session>> entry : connections.entrySet()) {
+            entry.getValue().removeIf(session -> !session.isOpen());
+        }
+        connections.entrySet().removeIf(entry -> entry.getValue().isEmpty());
+    }
+
+    private void makeMove(MakeMoveCommand action, Session session) throws IOException {
         try {
-            webSocketService.getGameData(action.getGameID());
-            webSocketService.getUser(action.getAuthString());
-            return Boolean.TRUE;
-        } catch(Exception e) {
-            return Boolean.FALSE;
+            TeamColor userColor = validUserColor();
+            TeamColor otherColor = userColor.equals(TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+            gameData.game().makeMove(action.getChessMove());
+
+            gameData = gameService.updateGame(action.getGameID(), gameService.getGame(action.getGameID()).game());
+            sendMessageAll(action.getGameID(), new LoadGameMessage(gameData));
+            broadcast(action.getGameID(), new NotificationMessage(action.getChessMove().toString()), session);
+
+            if (gameData.game().isInCheckmate(otherColor)) {
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in checkmate.", otherColor)));
+            } else if (gameData.game().isInStalemate(otherColor)) {
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in stalemate.", otherColor)));
+            } else if (gameData.game().isInCheck(otherColor) ) {
+                sendMessageAll(action.getGameID(), new NotificationMessage(String.format("%s is in check.", otherColor)));
+            }
+
+        } catch (Exception e) {
+            sendMessage(session, new ErrorMessage(e.getMessage()));
         }
     }
 
-    private LoadGameMessage getGameMessage(UserGameCommand action) throws Exception {
-        GameData gameData = webSocketService.getGameData(action.getGameID());
+    private void leave(UserGameCommand action, Session session) {
+        connections.get(action.getGameID()).remove(session);
+    }
+
+    private void resign(UserGameCommand action, Session session) {
+
+    }
+
+    public void sendMessage(Session session, ServerMessage message) throws IOException {
+        if (session.isOpen()) {
+            session.getRemote().sendString(new Gson().toJson(message));
+        }
+    }
+
+    private TeamColor validUserColor() throws Exception {
+//         check if observer
+        if (authData.username().equals(gameData.blackUsername())) {
+           return TeamColor.BLACK;
+        } else if (authData.username().equals(gameData.whiteUsername())) {
+            return TeamColor.WHITE;
+        } else {
+            throw new ResponseException(500, String.format("Error: %s is an observer.",authData.username()));
+        }
+    }
+
+    private LoadGameMessage getGameMessage(UserGameCommand action, Session session) throws Exception {
+        GameData gameData = gameService.getGame(action.getGameID());
         return new LoadGameMessage(gameData);
     }
 
-    private NotificationMessage getConnectNotification(UserGameCommand action) throws Exception {
-        GameData gameData = webSocketService.getGameData(action.getGameID());
-        AuthData authData = webSocketService.getUser(action.getAuthString());
-
+    private NotificationMessage getConnectNotification(UserGameCommand action) throws ResponseException {
         String message;
         if (Objects.equals(gameData.blackUsername(), authData.username())) {
             message = String.format("%s is joining the game as %s player", authData.username(), "black");
@@ -87,43 +171,4 @@ public class WebSocketHandler {
         return new NotificationMessage(message);
     }
 
-    private void makeMove(UserGameCommand action, Session session) {
-
-    }
-
-    private void leave(UserGameCommand action, Session session) {
-
-    }
-
-    private void resign(UserGameCommand action, Session session) {
-
-    }
-
-    public void sendMessage(Session session, ServerMessage message) throws IOException {
-        session.getRemote().sendString(new Gson().toJson(message));
-    }
-
-//    private void enter(String visitorName, Session session) throws IOException {
-//        connections.add(visitorName, session);
-//        var message = String.format("%s is in the shop", visitorName);
-//        var notification = new Notification(Notification.Type.ARRIVAL, message);
-//        connections.broadcast(visitorName, notification);
-//    }
-//
-//    private void exit(String visitorName) throws IOException {
-//        connections.remove(visitorName);
-//        var message = String.format("%s left the shop", visitorName);
-//        var notification = new Notification(Notification.Type.DEPARTURE, message);
-//        connections.broadcast(visitorName, notification);
-//    }
-//
-//    public void makeNoise(String petName, String sound) throws ResponseException {
-//        try {
-//            var message = String.format("%s says %s", petName, sound);
-//            var notification = new Notification(Notification.Type.NOISE, message);
-//            connections.broadcast("", notification);
-//        } catch (Exception ex) {
-//            throw new ResponseException(500, ex.getMessage());
-//        }
-//    }
 }

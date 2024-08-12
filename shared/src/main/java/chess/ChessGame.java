@@ -110,7 +110,7 @@ public class ChessGame {
         ) {
                 gameBoard.addPiece(move.getStartPosition(), null);
                 gameBoard.addPiece(move.getEndPosition(), movingPiece);
-        } else {throw new InvalidMoveException();}
+        } else {throw new InvalidMoveException("Error: invalid move.");}
 
         setTeamTurn(teamSwitch());
     }

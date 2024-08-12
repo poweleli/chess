@@ -1,25 +1,30 @@
 package server.websocket;
 
 import dataaccess.*;
-import model.*;
+import model.GameData;
+import service.GameService;
+import service.UserService;
 
 public class WebSocketService {
-    private final UserDAOInterface userDao;
-    private final AuthDAOInterface authDao;
-    private final GameDAOInterface gameDao;
 
-    public WebSocketService() throws Exception {
-        this.userDao = new UserSQL();
-        this.authDao = new AuthSQL();
-        this.gameDao = new GameSQL();
+    public WebSocketService wss;
+//    public UserService userService;
+//    public GameService gameService;
+    public GameDAOInterface gameDao;
+    public AuthDAOInterface authDao;
+
+    public WebSocketService() {
+        try {
+//            userService = new UserService();
+//            gameService = new GameService();
+            gameDao = new GameSQL();
+            authDao = new AuthSQL();
+        } catch (Exception e) {
+            System.out.println("Error");
+        }
     }
 
-    public GameData getGameData(int gameID) throws DataAccessException {
+    public GameData getGame(int gameID) throws DataAccessException {
         return gameDao.getGame(gameID);
     }
-
-    public AuthData getUser(String authToken) throws DataAccessException {
-        return authDao.getAuth(authToken);
-    }
-
 }

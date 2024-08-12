@@ -1,11 +1,26 @@
 package server;
 
+import dataaccess.DataAccessException;
 import handler.*;
 import spark.*;
 import server.websocket.WebSocketHandler;
+import service.*;
 
 public class Server {
-    private final WebSocketHandler webSocketHandler = new WebSocketHandler();
+    private WebSocketHandler webSocketHandler;
+    public static UserService userService;
+    public static GameService gameService;
+
+    public Server(){
+        try {
+            webSocketHandler = new WebSocketHandler();
+            userService = new UserService();
+            gameService = new GameService();
+        } catch (Exception e) {
+            System.out.println("Error");
+        }
+    }
+
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);

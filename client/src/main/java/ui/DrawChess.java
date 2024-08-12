@@ -17,6 +17,8 @@ public class DrawChess {
 
 
     public static void main(String[] args) {
+
+
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         out.print(ERASE_SCREEN);

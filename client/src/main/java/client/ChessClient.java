@@ -17,8 +17,8 @@ public class ChessClient {
     private State state = State.SIGNEDOUT;
     private String authToken = null;
     private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private HashMap<String, Integer> gameIDs = new HashMap<>();
-    private HashMap<Integer, String> gameIDs2 = new HashMap<>();
+    private final HashMap<String, Integer> gameIDs = new HashMap<>();
+    private final HashMap<Integer, String> gameIDs2 = new HashMap<>();
 
     public ChessClient(String urlString) {
         activeApp = Boolean.TRUE;
@@ -52,6 +52,22 @@ public class ChessClient {
                     } else {
                         System.out.println("Invalid Request");
                     }
+                } else if (state.equals(State.GAMEPLAY)) {
+                    if (inputs[0].equalsIgnoreCase("highlight")) {
+                        highlight(inputs);
+                    } else if (inputs[0].equalsIgnoreCase("move")) {
+//                        move(inputs);
+                    } else if (inputs[0].equalsIgnoreCase("redraw")) {
+//                        redraw(inputs);
+                    } else if (inputs[0].equalsIgnoreCase("leave")) {
+//                        leave(inputs);
+//                        state = State.SIGNEDIN;
+                    } else if (inputs[0].equalsIgnoreCase("resign")) {
+//                        resign(inputs);
+                    } else {
+                        System.out.println("Invalid Request");
+                    }
+
                 } else {
                     if (inputs[0].equalsIgnoreCase("create")) {
                         createGame(inputs);
@@ -146,6 +162,12 @@ public class ChessClient {
         printGames(res);
     }
 
+    public void highlight(String[] inputs) throws ResponseException {
+
+
+    }
+
+
     public void showGameBoard() {
         System.out.println("Game Board");
         String[] args = new String[]{"TEST"};
@@ -172,6 +194,8 @@ public class ChessClient {
     }
 
 
+
+
     public void getHelp() {
         if (state.equals(State.SIGNEDIN)) {
             System.out.println("""
@@ -181,6 +205,15 @@ public class ChessClient {
                     observe <ID> - a game
                     logout - when you are done
                     quit - playing chess
+                    help - with possible commands
+                    """);
+        } else if (state.equals(State.GAMEPLAY)) {
+            System.out.println("""
+                    highlight <ROW> <COL> - highlight legal chess moves for piece
+                    move <C_ROW> <C_COL> <T_ROW> <T_COL> - make chess move from current piece to target space
+                    redraw - redraws chess board
+                    leave - leave chess game
+                    resign - forfeit the chess game
                     help - with possible commands
                     """);
         } else {

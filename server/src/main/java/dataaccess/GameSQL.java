@@ -156,4 +156,18 @@ public class GameSQL implements GameDAOInterface{
         }
 
     }
+
+    @Override
+    public void updateGame(int gameID, ChessGame game) throws DataAccessException{
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("UPDATE game SET chess_game=? WHERE id=?")) {
+                preparedStatement.setString(1, gson.toJson(game));
+                preparedStatement.setString(2, String.valueOf(gameID));
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException(e.getMessage());
+        }
+
+    }
 }
