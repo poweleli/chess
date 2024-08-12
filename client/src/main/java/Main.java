@@ -1,10 +1,13 @@
 import client.ChessClient;
+import client.Repl;
 
 public class Main {
     public static void main(String[] args) {
         var serverUrl = "http://localhost:8080";
 
-        ChessClient console = new ChessClient(serverUrl);
-        console.start();
+        new Repl(serverUrl).run();
+
+//        ChessClient console = new ChessClient(serverUrl);
+//        console.start();
     }
 }

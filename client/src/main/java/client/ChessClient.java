@@ -1,5 +1,7 @@
 package client;
 
+import client.websocket.ServerMessageHandler;
+import client.websocket.WebSocketFacade;
 import exception.ResponseException;
 import model.GameData;
 import requests.*;
@@ -11,26 +13,32 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class ChessClient {
+    private String serverUrl;
     private boolean activeApp;
     private final Scanner scanner;
     private final ServerFacade server;
+    private WebSocketFacade ws;
+    private final ServerMessageHandler serverMessageHandler;
     private State state = State.SIGNEDOUT;
     private String authToken = null;
     private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private final HashMap<String, Integer> gameIDs = new HashMap<>();
     private final HashMap<Integer, String> gameIDs2 = new HashMap<>();
 
-    public ChessClient(String urlString) {
+    public ChessClient(String urlString, ServerMessageHandler serverMessageHandler) {
+        serverUrl = urlString;
         activeApp = Boolean.TRUE;
         scanner = new Scanner(System.in);
         server = new ServerFacade(urlString);
+        this.serverMessageHandler = serverMessageHandler;
     }
 
     public void start() {
         System.out.println("♕ Welcome to 240 chess. Type Help to get started. ♕");
         while (activeApp) {
             try {
-                String userInputMessage = state.equals(State.SIGNEDIN) ? "LOGGED_IN" : "LOGGED_OUT";
+                String userInputMessage = getUserInputMessage();
+
                 System.out.printf("[%s] >>> ", userInputMessage);
                 String input = scanner.nextLine();
                 String[] inputs = input.split(" ");
@@ -75,7 +83,7 @@ public class ChessClient {
                         listGame(inputs);
                     } else if (inputs[0].equalsIgnoreCase("join")) {
                         joinGame(inputs);
-                        System.out.println("join");
+                        state = State.GAMEPLAY;
                     } else if (inputs[0].equalsIgnoreCase("observe")) {
                         observeGame();
                     } else if (inputs[0].equalsIgnoreCase("logout")) {
@@ -92,6 +100,15 @@ public class ChessClient {
         }
     }
 
+    public String getUserInputMessage() {
+        if (state.equals(State.SIGNEDIN)) {
+            return "LOGGED_IN";
+        } else if (state.equals(State.SIGNEDOUT)) {
+            return "LOGGED_OUT";
+        } else {
+            return "GAMEPLAY";
+        }
+    }
     public void register(String[] inputs) throws ResponseException{
         if (inputs.length >= 4) {
             RegisterRequest req = new RegisterRequest(inputs[1], inputs[2], inputs[3]);
@@ -133,11 +150,11 @@ public class ChessClient {
         if (inputs.length >= 2) {
             CreateGameRequest req = new CreateGameRequest(authToken, inputs[1]);
             CreateGameResult res = server.createGame(req);
-            String randomID = generateRandomGameID();
-            gameIDs.put(randomID, res.gameID());
-            gameIDs2.put(res.gameID(), randomID);
+//            String randomID = generateRandomGameID();
+//            gameIDs.put(randomID, res.gameID());
+//            gameIDs2.put(res.gameID(), randomID);
 
-            System.out.printf("Successfully created \"%s\". Game ID: %s%n", inputs[1], randomID);
+            System.out.printf("Successfully created \"%s\". Game ID: %s%n", inputs[1], res.gameID());
         } else {
             throw new ResponseException(500, "Expected <NAME>");
         }
@@ -149,7 +166,8 @@ public class ChessClient {
         for (GameData game : res.games()) {
             System.out.printf("%-20s %-10s %-15s %-15s%n",
                     game.gameName(),
-                    gameIDs2.get(game.gameID()),
+//                    gameIDs2.get(game.gameID()),
+                    game.gameID(),
                     game.whiteUsername(),
                     game.blackUsername()
             );
@@ -162,8 +180,12 @@ public class ChessClient {
         printGames(res);
     }
 
-    public void highlight(String[] inputs) throws ResponseException {
+//    public void move(String[] inputs) throws ResponseException {
+//        if (inputs.length >=)
+//
+//    }
 
+    public void highlight(String[] inputs) throws ResponseException {
 
     }
 
@@ -174,11 +196,23 @@ public class ChessClient {
         DrawChess.main(args);
     }
 
+    public void createWS() throws ResponseException {
+        if (ws == null) {
+            ws = new WebSocketFacade(serverUrl, serverMessageHandler);
+        }
+    }
+
     public void joinGame(String[] inputs) throws ResponseException{
-        if (gameIDs.get(inputs[1]) != null && inputs.length >= 3) {
-            JoinGameRequest req = new JoinGameRequest(authToken, inputs[2], gameIDs.get(inputs[1]));
-            JoinGameResult res = server.joinGame(req);
-            showGameBoard();
+        if (inputs[1] != null && inputs.length >= 3) {
+            try {
+                JoinGameRequest req = new JoinGameRequest(authToken, inputs[2], Integer.parseInt(inputs[1]));
+                JoinGameResult res = server.joinGame(req);
+                createWS();
+                ws.joinGame(authToken, Integer.parseInt(inputs[1]));
+//            showGameBoard();
+            } catch (Exception e) {
+                throw new ResponseException(500, e.getMessage());
+            }
         } else {
             throw new ResponseException(500, "Expected <ID> [WHITE|BLACK]");
         }
@@ -210,7 +244,7 @@ public class ChessClient {
         } else if (state.equals(State.GAMEPLAY)) {
             System.out.println("""
                     highlight <ROW> <COL> - highlight legal chess moves for piece
-                    move <C_ROW> <C_COL> <T_ROW> <T_COL> - make chess move from current piece to target space
+                    move <C_ROW><C_COL> <T_ROW><T_COL> - make chess move from current piece to target space
                     redraw - redraws chess board
                     leave - leave chess game
                     resign - forfeit the chess game

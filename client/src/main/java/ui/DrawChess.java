@@ -1,7 +1,13 @@
 package ui;
 
+import chess.ChessBoard;
+import chess.ChessGame;
+import chess.ChessPiece;
+import chess.ChessPosition;
+
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Field;
 
 import static ui.EscapeSequences.*;
 
@@ -15,128 +21,99 @@ public class DrawChess {
     // Padded characters.
     private static final String EMPTY = "   ";
 
+    private static final String[] rowLabels = new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
+    private static final String[] colLabels = new String[]{ "a", "b", "c", "d", "e", "f", "g", "h" };
+    private ChessBoard board;
 
-    public static void main(String[] args) {
+    public void setBoard(ChessBoard board) {
+        this.board = board;
+    }
 
-
+    public void drawBoard(ChessBoard board) {
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
-
         out.print(ERASE_SCREEN);
-        ChessSetup chessSetup = new ChessSetup("black",
-                new String[]{"1", "2", "3", "4", "5", "6", "7", "8"},
-                new String[]{"h", "g", "f", "e", "d", "c", "b", "a" },
-                new String[]{"R", "N", "B", "K", "Q", "B", "N", "R"},
-                SET_TEXT_COLOR_RED,
-                SET_TEXT_COLOR_BLUE);
-        drawBoard(out, chessSetup);
-        out.println();
-        ChessSetup chessSetup2 = new ChessSetup("white",
-                new String[]{"8", "7", "6", "5", "4", "3", "2", "1"},
-                new String[]{ "a", "b", "c", "d", "e", "f", "g", "h" },
-                new String[]{"R", "N", "B", "Q", "K", "B", "N", "R"},
-                SET_TEXT_COLOR_BLUE,
-                SET_TEXT_COLOR_RED);
-        drawBoard(out, chessSetup2);
-
-
-        out.print(SET_BG_COLOR_BLACK);
-        out.print(SET_TEXT_COLOR_WHITE);
+        drawBoard(out);
     }
 
-    private static void drawBoard(PrintStream out, ChessSetup chessSetup){
-        drawHeaderFooter(out, chessSetup);
-        drawTicTacToeBoard(out, chessSetup);
-        drawHeaderFooter(out, chessSetup);
+    private void drawBoard(PrintStream out) {
+        drawHeaderFooter(out);
+        for (int i=1; i<=8; i++) {
+            drawRow(out, i);
+        }
+        drawHeaderFooter(out);
     }
 
-    private static void drawHeaderFooter(PrintStream out, ChessSetup chessSetup) {
-
-        setBlack(out);
-
+    private void drawHeaderFooter(PrintStream out) {
         out.print(" ".repeat(3));
         for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
-            drawHeader(out, chessSetup.colLabels()[boardCol]);
-
+            drawHeader(out, colLabels[boardCol]);
             out.print(EMPTY.repeat(LINE_WIDTH_IN_PADDED_CHARS));
         }
-
         out.println();
     }
 
-    private static void drawHeader(PrintStream out, String headerText) {
-        out.print(" ".repeat(1));
-        printHeaderText(out, headerText);
-        out.print(" ".repeat(1));
-    }
-
-    private static void printHeaderText(PrintStream out, String player) {
-        out.print(SET_BG_COLOR_BLACK);
-        out.print(SET_TEXT_COLOR_GREEN);
-
-        out.print(player);
-
-        setBlack(out);
-    }
-
-    private static void drawTicTacToeBoard(PrintStream out, ChessSetup chessSetup) {
-
-        for (int boardRow = 0; boardRow < BOARD_SIZE_IN_SQUARES; ++boardRow) {
-            drawRowHeaderFooter(out, boardRow, chessSetup);
-            drawRowOfSquares(out, boardRow, chessSetup);
+    private  void drawRow(PrintStream out, int i) {
+//        draw
+        out.print(" " + rowLabels[i-1] + " ");
+        for (int j=1; j<=8; j++) {
+            getColor(out, i, j);
+            ChessPiece p = board.getPiece(new ChessPosition(i,j));
+            if (p != null) {
+                printPiece(out, p);
+            } else {
+                out.print(EMPTY);
+            }
 
         }
+        resetColors(out);
+        out.print(" " + rowLabels[i-1] + " ");
+        out.print(EMPTY.repeat(LINE_WIDTH_IN_PADDED_CHARS));
+        out.println();
     }
 
-    private static void drawRowHeaderFooter(PrintStream out, int boardRow, ChessSetup chessSetup) {
-        out.print(SET_BG_COLOR_BLACK);
-        out.print(SET_TEXT_COLOR_GREEN);
-        out.print(" " + chessSetup.rowLabels()[boardRow] + " ");
-    }
-
-    private static void getPlayer(PrintStream out, int boardRow, int boardCol, ChessSetup chessSetup) {
-        if (boardRow == 0 || boardRow == 1) {
-            out.print(chessSetup.myColor());
-            if (boardRow == 0) {
-                out.print(" " + chessSetup.pieceOrder()[boardCol]+ " ");
-            } else {
-                out.print(" " + "p"+ " ");
-            }
-        } else if (boardRow == 6 || boardRow == 7) {
-            out.print(chessSetup.otherColor());
-            if (boardRow == 7) {
-                out.print(" " + chessSetup.pieceOrder()[boardCol]+ " ");
-            } else {
-                out.print(" " + "p" + " ");
-            }
-
-        } else {
+    private void printPiece(PrintStream out, ChessPiece p) {
+        String piece = p.getTeamColor() + "_" + p.getPieceType();
+        try {
+            Field field = EscapeSequences.class.getField(p.getTeamColor() + "_" + p.getPieceType());
+            out.print((String) field.get(null));
+        } catch (Exception e) {
             out.print(EMPTY);
         }
     }
 
-    private static void drawRowOfSquares(PrintStream out, int boardRow, ChessSetup chessSetup) {
-        for (int squareRow = 0; squareRow < SQUARE_SIZE_IN_PADDED_CHARS; ++squareRow) {
-            for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
-                if ((boardCol % 2 == 0 && boardRow % 2 == 1) ||
-                        (boardCol % 2 == 1 && boardRow%2 == 0)) {
-                    out.print(SET_BG_COLOR_DARK_GREY);
-                } else {
-                    out.print(SET_BG_COLOR_LIGHT_GREY);
-                }
-                getPlayer(out, boardRow, boardCol, chessSetup);
-
-                if (boardCol == BOARD_SIZE_IN_SQUARES-1) {
-                    drawRowHeaderFooter(out, boardRow, chessSetup);
-                }
-                setBlack(out);
-            }
-            out.println();
+    private void getColor(PrintStream out, int i, int j) {
+        if ((i + j + 1) % 2 == 0) {
+            setWhite(out);
+        } else {
+            setBlack(out);
         }
     }
 
-    private static void setBlack(PrintStream out) {
-        out.print(SET_BG_COLOR_BLACK);
+    private void drawHeader(PrintStream out, String player) {
+        out.print(" ".repeat(1));
+        out.print(player);
+        out.print(" ".repeat(1));
+    }
+
+    private void drawRowHeaderFooter(PrintStream out, int boardRow, ChessSetup chessSetup) {
+        out.print(RESET_BG_COLOR);
         out.print(SET_TEXT_COLOR_BLACK);
+        out.print(" " + chessSetup.rowLabels()[boardRow] + " ");
+    }
+
+    private void setBlack(PrintStream out) {
+        out.print(SET_BG_COLOR_DARK_GREY);
+        out.print(SET_TEXT_COLOR_YELLOW);
+    }
+
+    private void setWhite(PrintStream out) {
+        out.print(SET_BG_COLOR_BLACK);
+        out.print(SET_TEXT_COLOR_YELLOW);
+    }
+
+    private void resetColors(PrintStream out) {
+        out.print(RESET_BG_COLOR);
+        out.print(RESET_TEXT_COLOR);
     }
 
 }
