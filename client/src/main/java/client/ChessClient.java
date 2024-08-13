@@ -15,7 +15,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class ChessClient {
-    private String serverUrl;
+    private final String serverUrl;
     private boolean activeApp;
     private final Scanner scanner;
     private final ServerFacade server;
@@ -89,7 +89,7 @@ public class ChessClient {
                         joinGame(inputs);
                         state = State.GAMEPLAY;
                     } else if (inputs[0].equalsIgnoreCase("observe")) {
-                        observeGame();
+                        observeGame(inputs);
                     } else if (inputs[0].equalsIgnoreCase("logout")) {
                         logout(inputs);
                         state = State.SIGNEDOUT;
@@ -177,10 +177,6 @@ public class ChessClient {
     }
 
 
-    public void highlight(String[] inputs) throws ResponseException {
-
-    }
-
     public void createWS() throws ResponseException {
         if (ws == null) {
             ws = new WebSocketFacade(serverUrl, serverMessageHandler);
@@ -231,9 +227,9 @@ public class ChessClient {
             char rowChar = position.charAt(1);
 
             int column = Character.toLowerCase(columnChar) - 'a' + 1; // Convert 'A' to 0, 'B' to 1, etc.
-            int row = 9 - Character.getNumericValue(rowChar); // Convert '1' to 0, '2' to 1, etc.
+            int row = 9 - Integer.parseInt(String.valueOf(rowChar));
 
-            if (column < 0 || column > 7 || row < 0 || row > 7) {
+            if (column < 1 || column > 8 || row < 1 || row > 8) {
                 throw new IllegalArgumentException("Chess position out of bounds.");
             }
             return new ChessPosition(row,column);
@@ -244,13 +240,24 @@ public class ChessClient {
 
 
 
-    public void observeGame() throws ResponseException {
-//        showGameBoard();
+    public void observeGame(String[] inputs) throws ResponseException {
+        if (inputs.length >= 2) {
+            try {
+                createWS();
+                ws.joinGame(authToken, Integer.parseInt(inputs[1]));
+                this.currGame = Integer.parseInt(inputs[1]);
+                state = State.GAMEPLAY;
+            } catch (Exception e) {
+                throw new ResponseException(500, "Error:" + e.getMessage());
+            }
+        } else {
+            throw new ResponseException(500, "Expected <ID> [WHITE|BLACK]");
+        }
     }
 
     public void redraw() throws ResponseException {
         createWS();
-        ws.redraw();
+        ws.redraw(currGame);
     }
 
     public void leave() throws ResponseException {
@@ -263,14 +270,27 @@ public class ChessClient {
         ws.resign(authToken, currGame);
     }
 
+    public void highlight(String[] inputs) throws ResponseException {
+        if (inputs.length >= 2) {
+            try {
+                ChessPosition pos = convertPosition(inputs[1]);
+                System.out.println(pos);
+                createWS();
+                ws.highlight(currGame, pos);
+            } catch (Exception e) {
+                throw new ResponseException(500, e.getMessage());
+            }
+
+        } else {
+            System.out.println("Invalid highlight input");
+        }
+    }
 
 
     public void deleteDB() throws ResponseException {
         ClearResult res = server.deleteDB();
         System.out.println("DB has been cleared");
     }
-
-
 
 
     public void getHelp() {

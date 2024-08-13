@@ -1,13 +1,12 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.lang.reflect.Field;
+import java.util.Collection;
+import java.util.HashSet;
 
 import static ui.EscapeSequences.*;
 
@@ -24,9 +23,17 @@ public class DrawChess {
     private static final String[] rowLabels = new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
     private static final String[] colLabels = new String[]{ "a", "b", "c", "d", "e", "f", "g", "h" };
     private ChessBoard board;
+    private Collection<ChessMove> highlightMoves;
+    private ChessPosition highlightPos;
 
-    public void drawBoard(ChessBoard board) {
-        this.board = board;
+    public void drawBoard(ChessGame game, ChessPosition highlightPos) {
+        if (highlightPos != null) {
+            this.highlightPos = highlightPos;
+            this.highlightMoves = game.validMoves(highlightPos);
+        } else {
+            this.highlightMoves = null;
+        }
+        this.board = game.getBoard();
         var out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         out.print(ERASE_SCREEN);
         out.println();
@@ -54,8 +61,9 @@ public class DrawChess {
 //        draw
         out.print(" " + rowLabels[i-1] + " ");
         for (int j=1; j<=8; j++) {
-            getColor(out, i, j);
-            ChessPiece p = board.getPiece(new ChessPosition(i,j));
+            ChessPosition pos = new ChessPosition(i,j);
+            getColor(out, pos);
+            ChessPiece p = board.getPiece(pos);
             if (p != null) {
                 printPiece(out, p);
             } else {
@@ -79,8 +87,11 @@ public class DrawChess {
         }
     }
 
-    private void getColor(PrintStream out, int i, int j) {
-        if ((i + j + 1) % 2 == 0) {
+    private void getColor(PrintStream out, ChessPosition pos) {
+        new ChessMove(highlightPos,pos, null);
+        if (highlightMoves!= null && highlightMoves.contains(new ChessMove(highlightPos,pos, null))) {
+            setHighlight(out);
+        } else if ((pos.getRow() + pos.getColumn() + 1) % 2 == 0) {
             setWhite(out);
         } else {
             setBlack(out);
@@ -93,12 +104,6 @@ public class DrawChess {
         out.print(" ".repeat(1));
     }
 
-    private void drawRowHeaderFooter(PrintStream out, int boardRow, ChessSetup chessSetup) {
-        out.print(RESET_BG_COLOR);
-        out.print(SET_TEXT_COLOR_BLACK);
-        out.print(" " + chessSetup.rowLabels()[boardRow] + " ");
-    }
-
     private void setBlack(PrintStream out) {
         out.print(SET_BG_COLOR_DARK_GREY);
         out.print(SET_TEXT_COLOR_YELLOW);
@@ -109,9 +114,15 @@ public class DrawChess {
         out.print(SET_TEXT_COLOR_YELLOW);
     }
 
+    private void setHighlight(PrintStream out) {
+        out.print(SET_BG_COLOR_GREEN);
+        out.print(RESET_TEXT_COLOR);
+    }
+
     private void resetColors(PrintStream out) {
         out.print(RESET_BG_COLOR);
         out.print(RESET_TEXT_COLOR);
     }
+
 
 }

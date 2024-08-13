@@ -6,8 +6,5 @@ public class Main {
         var serverUrl = "http://localhost:8080";
 
         new Repl(serverUrl).run();
-
-//        ChessClient console = new ChessClient(serverUrl);
-//        console.start();
     }
 }

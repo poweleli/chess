@@ -2,6 +2,7 @@ package client.websocket;
 
 import chess.ChessBoard;
 import chess.ChessMove;
+import chess.ChessPosition;
 import client.websocket.ServerMessageHandler;
 import com.google.gson.Gson;
 import exception.ResponseException;
@@ -17,7 +18,6 @@ import java.net.URISyntaxException;
 
 public class WebSocketFacade extends Endpoint {
     private final Gson gson = new Gson();
-    GameData latestData;
     ServerMessageHandler serverMessageHandler;
     Session session;
 
@@ -40,8 +40,8 @@ public class WebSocketFacade extends Endpoint {
                         case ERROR ->  serverMessageHandler.notify(gson.fromJson(message, ErrorMessage.class));
                         case LOAD_GAME -> {
                             LoadGameMessage loadGameMessage = gson.fromJson(message, LoadGameMessage.class);
-                            latestData = loadGameMessage.getGame();
-                            serverMessageHandler.getBoard(latestData);
+                            GameData latestData = loadGameMessage.getGame();
+                            serverMessageHandler.getBoard(latestData.gameID(), latestData, null);
                         }
                     }
                 }
@@ -73,9 +73,9 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    public void redraw() throws ResponseException {
+    public void redraw(int gameID) throws ResponseException {
         try {
-            serverMessageHandler.getBoard(latestData);
+            serverMessageHandler.getBoard(gameID, null, null);
         } catch (Exception e) {
             throw new ResponseException(500, "Error: redraw failure");
         }
@@ -96,6 +96,14 @@ public class WebSocketFacade extends Endpoint {
             session.getBasicRemote().sendText(new Gson().toJson(command));
         } catch (Exception e) {
             throw new ResponseException(500, "Error: resign failure");
+        }
+    }
+
+    public void highlight(int gameID, ChessPosition pos) throws ResponseException {
+        try {
+            serverMessageHandler.getBoard(gameID,null, pos);
+        } catch (Exception e) {
+            throw new ResponseException(500, "Error: highlight failure");
         }
     }
 }
