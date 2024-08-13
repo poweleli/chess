@@ -20,8 +20,8 @@ public class DrawChess {
     // Padded characters.
     private static final String EMPTY = "   ";
 
-    private static final String[] rowLabels = new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
-    private static final String[] colLabels = new String[]{ "a", "b", "c", "d", "e", "f", "g", "h" };
+    private static final String[] ROW_LABELS = new String[]{"8", "7", "6", "5", "4", "3", "2", "1"};
+    private static final String[] COL_LABELS = new String[]{ "a", "b", "c", "d", "e", "f", "g", "h" };
     private ChessBoard board;
     private Collection<ChessMove> highlightMoves;
     private ChessPosition highlightPos;
@@ -51,7 +51,7 @@ public class DrawChess {
     private void drawHeaderFooter(PrintStream out) {
         out.print(" ".repeat(3));
         for (int boardCol = 0; boardCol < BOARD_SIZE_IN_SQUARES; ++boardCol) {
-            drawHeader(out, colLabels[boardCol]);
+            drawHeader(out, COL_LABELS[boardCol]);
             out.print(EMPTY.repeat(LINE_WIDTH_IN_PADDED_CHARS));
         }
         out.println();
@@ -59,7 +59,7 @@ public class DrawChess {
 
     private  void drawRow(PrintStream out, int i) {
 //        draw
-        out.print(" " + rowLabels[i-1] + " ");
+        out.print(" " + ROW_LABELS[i-1] + " ");
         for (int j=1; j<=8; j++) {
             ChessPosition pos = new ChessPosition(i,j);
             getColor(out, pos);
@@ -72,7 +72,7 @@ public class DrawChess {
 
         }
         resetColors(out);
-        out.print(" " + rowLabels[i-1] + " ");
+        out.print(" " + ROW_LABELS[i-1] + " ");
         out.print(EMPTY.repeat(LINE_WIDTH_IN_PADDED_CHARS));
         out.println();
     }

@@ -25,10 +25,6 @@ public class ChessClient {
     private String authToken = null;
     private int currGame;
 
-//    private static final String ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-//    private final HashMap<String, Integer> gameIDs = new HashMap<>();
-//    private final HashMap<Integer, String> gameIDs2 = new HashMap<>();
-
     public ChessClient(String urlString, ServerMessageHandler serverMessageHandler) {
         serverUrl = urlString;
         activeApp = Boolean.TRUE;
@@ -146,9 +142,6 @@ public class ChessClient {
         if (inputs.length >= 2) {
             CreateGameRequest req = new CreateGameRequest(authToken, inputs[1]);
             CreateGameResult res = server.createGame(req);
-//            String randomID = generateRandomGameID();
-//            gameIDs.put(randomID, res.gameID());
-//            gameIDs2.put(res.gameID(), randomID);
 
             System.out.printf("Successfully created \"%s\". Game ID: %s%n", inputs[1], res.gameID());
         } else {
@@ -162,7 +155,6 @@ public class ChessClient {
         for (GameData game : res.games()) {
             System.out.printf("%-20s %-10s %-15s %-15s%n",
                     game.gameName(),
-//                    gameIDs2.get(game.gameID()),
                     game.gameID(),
                     game.whiteUsername(),
                     game.blackUsername()
@@ -191,7 +183,6 @@ public class ChessClient {
                 createWS();
                 ws.joinGame(authToken, Integer.parseInt(inputs[1]));
                 this.currGame = Integer.parseInt(inputs[1]);
-//            showGameBoard();
             } catch (Exception e) {
                 throw new ResponseException(500, e.getMessage());
             }
